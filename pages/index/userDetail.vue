@@ -1,38 +1,38 @@
 <template>
 	<view class="content">
-		<image src="/static/data/user-cover.png" mode="aspectFit" class="user-cover"></image>
+		<image :src="girl.headImg" mode="aspectFill" class="user-cover"></image>
 		<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
 		<view class="detail-box">
 			<view class="user-avatar-box">
-				<image src="/static/data/user-avatar.png" mode="aspectFit" class="user-avatar"></image>
+				<image :src="girl.avatar" mode="aspectFill" class="user-avatar"></image>
 			</view>
 			<view class="wechat-box">
 				<image src="/static/icon-wechat.png" mode="aspectFit" class="icon-wechat"></image>
 				查看微信
 			</view>
 			<view class="user-name">
-				徐莉莉
+				{{girl.nickname}}
 				<view class="user-level">
-					LV17
+					LV{{girl.level}}
 				</view>
 			</view>
 			<view class="user-intro-box">
 				<view class="user-id">
-					ID: 96526536578
+					ID: {{girl.item_id}}
 				</view>
 				<view class="user-job">
 					<image src="/static/icon-job.png" mode="aspectFit" class="icon-job"></image>
-					模特
+					{{girl.profession}}
 				</view>
 				<view class="user-city">
 					<image src="/static/icon-city.png" mode="aspectFit" class="icon-city"></image>
-					浙江·杭州
+					{{girl.province}}·{{girl.city}}
 				</view>
 			</view>
 			<view class="user-info-box">
 				<view class="user-info-item">
 					<view class="user-info-text">
-						26岁
+						{{girl.age}}岁
 					</view>
 					<view class="user-info-title">
 						年龄
@@ -40,7 +40,7 @@
 				</view>
 				<view class="user-info-item">
 					<view class="user-info-text">
-						165cm
+						{{girl.height}}cm
 					</view>
 					<view class="user-info-title">
 						身高
@@ -48,7 +48,7 @@
 				</view>
 				<view class="user-info-item">
 					<view class="user-info-text">
-						52kg
+						{{girl.weight}}kg
 					</view>
 					<view class="user-info-title">
 						体重
@@ -56,7 +56,7 @@
 				</view>
 				<view class="user-info-item">
 					<view class="user-info-text">
-						双鱼座
+						{{girl.constellation}}
 					</view>
 					<view class="user-info-title">
 						星座
@@ -79,17 +79,17 @@
 					</view>
 				</view>
 				<view class="total-count" v-if="tab=='图片'">
-					共16个
+					共{{girl.photosLen}}个
 				</view>
 				<view class="total-count" v-if="tab=='视频'">
 					共18个
 				</view>
 			</view>
 			<view class="image-box" v-if="tab=='图片'">
-				<image v-for="(item,index) in userImages" :src="item" mode="aspectFit" class="user-image" @click="previewImage([item])"></image>
+				<image :key="index" v-for="(item,index) in girl.photos" :src="item" mode="aspectFill" class="user-image" @click="previewImage([item])"></image>
 			</view>
 			<view class="image-box" v-if="tab=='视频'">
-				<image v-for="(item,index) in userVideos" :src="item" mode="aspectFit" class="user-image" @click="playVideo()"></image>
+				<image :key="index" v-for="(item,index) in girl.photos" :src="item" mode="aspectFill" class="user-image" @click="playVideo()"></image>
 			</view>
 			<video src="/static/data/user.mp4" style="width: 0;height: 0;" id="myVideo"></video>
 		</view>
@@ -117,23 +117,12 @@
 		data() {
 			return {
 				tab:'图片',
-				userImages:[
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png'
-				],
 				userVideos:[
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
 					'/static/data/user-images-2.png'
 				],
-				videoContext:null
+				videoContext:null,
+				girl:{},
+				girlId:''
 			}
 		},
 		methods: {
@@ -168,7 +157,22 @@
 				uni.previewImage({
 					urls:images
 				})
+			},
+			async userInfo(){
+				let uri = '/api/content/girl';
+				let param = {
+					girl_id: this.girlId
+				};
+				
+				let info = await this.$utils.request(uri, param);
+				this.girl = info.data;
+				this.userImages = this.girl.photos;
 			}
+		},
+		onLoad(option) {
+			console.log(option, option.girl);
+			this.girlId = option.girl;
+			this.userInfo();
 		},
 		onReachBottom() {
 			uni.showLoading({

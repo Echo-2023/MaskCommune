@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import * as config from 'vue.config'
+import * as config from 'config'
 
 
 function getAesString(data,key,iv){//加密
@@ -42,7 +42,7 @@ function getDAes(data){//解密
 
 const sign = function (v, domain, deviceId){
 	const encString = v + "|" + deviceId + "|" + domain;
-	console.log('string:' + encString);
+	//console.log('string:' + encString);
 	return getAES(encString);
 }
 
@@ -68,26 +68,29 @@ const headers = {
 	deviceId: uni.getDeviceInfo().deviceId,
 	sign: sign('1.0.0', location.host, uni.getDeviceInfo().deviceId)
 }
-//获取区域
-const getProvinces = function()
+
+
+const request = function(uri, param)
 {
-	console.log(headers);
-	let provinces = uni.request({
-		url : config.API_HOST + '/api/regions',
-		header: headers,
-		data:{},
-		method: 'POST',
-		success: function(res){
-			provinces = res;
-		},
+	//console.log(headers);
+	return new Promise((resolve, reject) => {
+		uni.request({
+			url : config.API_HOST + uri,
+			header: headers,
+			data:param,
+			method: 'POST',
+			success: (res)=>{
+				resolve(res.data);
+			},
+			fail: function(err) {
+				reject(err); // 将异步请求的错误传递给Promise对象
+			}
+		});
 	});
-	
-	return provinces;
 }
 
 module.exports = {
 	headers,
-	getProvinces
-	
+	request
 }
 

@@ -23,6 +23,9 @@
 					:range="multiArray">
 					<view class="uni-input">{{selectCity}}</view>
 				</picker>
+				<!-- <picker @change="bindPickerChange" :value="index" :range="array" range-key="name">
+					<view class="uni-input">{{array[index].name}}</view>
+				</picker> -->
 				<view class="triangle">
 
 				</view>
@@ -32,11 +35,11 @@
 			@scrolltolower="loadMoreData()" @refresherrefresh="reloadData()" :refresher-enabled="true"
 			refresher-background="rgba(0,0,0,0)" :refresher-triggered="triggered" @refresherpulling="onPulling">
 			<view class="user-box">
-				<view class="user-item" v-for="(user,index) in users" @click="userDeailPage()">
-					<image :src="user.image" mode="aspectFit" class="user-image"></image>
+				<view class="user-item" :key="index" v-for="(user,index) in users" @click="userDeailPage(user.id)">
+					<image :src="user.avatar" mode="aspectFill" class="user-image"></image>
 					<view class="user-bottom">
 						<view class="user-name">
-							{{user.name}}
+							{{user.nickname}}
 						</view>
 						<view class="user-info">
 							年龄/体重：{{user.age + '，' + user.weight}}
@@ -57,56 +60,25 @@
 		addressList,
 		provinces
 	} from '@/common/cityData.js';
-	
-	var moreData = [{
-			image: '/static/data/data-user1.png',
-			name: '徐丽丽',
-			city: '杭州',
-			age: '26',
-			weight: '50kg'
-		},
-		{
-			image: '/static/data/data-user1.png',
-			name: '徐丽丽',
-			city: '杭州',
-			age: '26',
-			weight: '50kg'
-		}
-	];
+	//const regions = this.$utils.getRegions('');
 	export default {
 		data() {
 			return {
 				refreshing: false,
 				triggered: false,
 				selectTab: '新人',
+				initProvinceKey: 1,
+				initCityKey:1,
+				pages: 0,
+				page: 1,
+				pageSize: 12,
 				multiArray: [
 					provinces,
-					['北京市']
+					addressList['广东省']
 				],
-				multiIndex: [0, 0],
-				selectCity: '北京市',
-				users: [{
-						image: '/static/data/data-user1.png',
-						name: '徐丽丽',
-						city: '杭州',
-						age: '26',
-						weight: '50kg'
-					},
-					{
-						image: '/static/data/data-user1.png',
-						name: '徐丽丽',
-						city: '杭州',
-						age: '26',
-						weight: '50kg'
-					},
-					{
-						image: '/static/data/data-user1.png',
-						name: '徐丽丽',
-						city: '杭州',
-						age: '26',
-						weight: '50kg'
-					}
-				]
+				multiIndex: [18, 0],
+				selectCity: '广州市',
+				users: []
 			}
 		},
 		computed: {
@@ -119,9 +91,12 @@
 			}
 		},
 		onLoad() {
-			//const deviceInfo = uni.getDeviceInfo();
-			//console.log(deviceInfo.deviceId);
-			console.log(this.$utils.getProvinces());
+			
+		},
+		mounted(){
+			//this.getRegions(this.code)
+			this.getUsers(this.page, this.pageSize, this.selectTab, this.selectCity);
+			
 		},
 		methods: {
 			bindMultiPickerColumnChange(e) {
@@ -135,6 +110,9 @@
 						//选择市
 					case 1:
 						this.selectCity = this.multiArray[1][e.detail.value];
+						this.page  = 1;
+						this.users = [];
+						this.getUsers()
 						break;
 					default:
 						break;
@@ -143,17 +121,30 @@
 			},
 			select(tab) {
 				this.selectTab = tab;
+				this.users     = [];
+				this.page      = 1;
+				this.getUsers();
 			},
 			loadMoreData() {
-				uni.showLoading({
-					mask: true
-				})
-				setTimeout(() => {
-					this.users = this.users.concat(moreData);
-					this.$nextTick(() => {
-						uni.hideLoading();
+				if (this.page < this.pages) {
+					uni.showLoading({
+						mask: true
 					})
-				}, 500)
+					setTimeout(() => {
+						this.page  = this.page + 1;
+						this.getUsers();
+						//this.users = this.users.concat(more.data);
+						this.$nextTick(() => {
+							uni.hideLoading();
+						})
+					}, 500)
+				} else {
+					//alert('no more');
+					uni.showToast({
+						title:"没有更多了",
+						duration:2000
+					})
+				}
 			},
 			reloadData() {
 				if (this.refreshing) return;
@@ -180,26 +171,51 @@
 			onRestore() {
 				this.triggered = 'restore'; // 需要重置
 			},
-			userDeailPage(){
+			userDeailPage(id){
 				uni.navigateTo({
-					url:'/pages/index/userDetail'
+					url:'/pages/index/userDetail?girl='+id
 				})
 			},
-			getRegions() {
-				console.log(this.$utils.headers);
-				let provinces = uni.request({
-					url : config.API_HOST + '/api/regions',
-					dataType:'json',
-					header: this.$utils.header,
-					data:{},
-					method: 'POST',
-					//header: {'content-type': 'application/x-www-form-urlencoded'},
-					success: function(res){
-						provinces = res;
-					},
-				});
+			async getUsers() {
+				let page     = this.page;
+				let pageSize = this.pageSize;
+				let type     = this.selectTab;
+				let city     = this.selectCity;
+				let uri      = '/api/content/girls';
+				let userType = 'new';
+				if (type == '女神') {
+					type = 'goddess';
+				} else {
+					type = 'news';
+				}
+				let param = {
+					"type": type,
+					"city": city,
+					"page": page,
+					"pageSize": pageSize,
+				};
+				const tmpUsers = await this.$utils.request(uri, param);
+				console.log('ppp', this.users);
+				this.pages = tmpUsers.data.pages;
+				if (this.users.length) {
+					this.users = this.users.concat(tmpUsers.data.data);
+				} else {
+					this.users = tmpUsers.data.data
+				}
+			},
+			//获取区域
+			async getRegions(code) {
+				let uri = '/api/regions';
+				let param = {
+					"code": this.code
+				};
 				
-				return provinces;
+				let regions = await this.$utils.request('/api/regions', param)
+				if (code) {
+					this.multiArray[1] = regions.data;
+				} else {
+					this.multiArray[0] = regions.data;
+				}
 			}
 		}
 	}
@@ -320,6 +336,7 @@
 		align-items: flex-start;
 		justify-content: center;
 		color: #fff;
+		background-color: rgba(142, 30, 32, 0.5);;
 	}
 
 	.user-name {
