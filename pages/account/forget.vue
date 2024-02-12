@@ -2,7 +2,7 @@
 	<view class="content">
 		<image src="/static/login-top-bg.png" mode="aspectFit" class="login-top-bg"></image>
 		<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
-		<image src="/static/login-bottom-bg.png" mode="aspectFit" class="login-bottom-bg"></image>
+		<!-- <image src="/static/login-bottom-bg.png" mode="aspectFit" class="login-bottom-bg"></image> -->
 		<view class="login-title">
 			欢迎使用
 			<view class="login-app">
@@ -31,23 +31,23 @@
 			<input :type="isPassword2?'password':'text'" class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
 			<image :src="isPassword2?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="password2Click()"></image>
 		</view>
-		<!-- <view class="login-tip-box">
-			<view @click="regist()">
-				邮箱免费注册
+		<view class="login-tip-box">
+			<view @click="login()">
+				使用已注册账号登录
 			</view>
-			<view @click="forget()">
+			<!-- <view @click="forget()">
 				忘记密码？
-			</view>
-		</view> -->
+			</view> -->
+		</view>
 		<view class="login-btn" @click="login()">
 			确认提交
 		</view>
-		<view class="login-agree-box">
+		<!-- <view class="login-agree-box">
 			<checkbox value="agree" class="login-check-box" color="#991D0D" style="transform:scale(0.7)" :checked="checked" />
 			<view class="login-agree-text">
 				注册/登录即同意<text class="login-agree-name">《服务与隐私条款（面具公社) 》</text>,首次登录将自动注册
 			</view>
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -72,7 +72,7 @@
 			},
 			login(){
 				uni.reLaunch({
-					url:'/pages/index/index'
+					url:'/pages/account/login'
 				})
 			},
 			regist(){

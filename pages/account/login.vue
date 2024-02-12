@@ -2,7 +2,7 @@
 	<view class="content">
 		<image src="/static/login-top-bg.png" mode="aspectFit" class="login-top-bg"></image>
 		<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
-		<image src="/static/login-bottom-bg.png" mode="aspectFit" class="login-bottom-bg"></image>
+		<!-- <image src="/static/login-bottom-bg.png" mode="aspectFit" class="login-bottom-bg"></image> -->
 		<view class="login-title">
 			欢迎登录
 			<view class="login-app">
@@ -29,14 +29,10 @@
 				忘记密码？
 			</view>
 		</view>
+		
+		
 		<view class="login-btn" @click="login()">
 			登录
-		</view>
-		<view class="login-agree-box">
-			<checkbox value="agree" class="login-check-box" color="#991D0D" style="transform:scale(0.7)" :checked="checked" />
-			<view class="login-agree-text">
-				注册/登录即同意<text class="login-agree-name">《服务与隐私条款（面具公社) 》</text>,首次登录将自动注册
-			</view>
 		</view>
 	</view>
 </template>
@@ -48,6 +44,18 @@
 				checked:false,
 				isPassword:true
 			}
+		},
+		mounted(){
+			uni.getStorage({
+				key: 'user_info',
+				success: function (res) {
+					if (res.data){
+						uni.reLaunch({
+							url:'/pages/settings/settings'
+						})
+					}
+				}
+			});
 		},
 		methods: {
 			back(){
@@ -173,11 +181,12 @@
 	width: 710rpx;
 	display: flex;
 	flex-flow: row nowrap;
-	justify-content: space-between;
+	/*justify-content: space-between;*/
 	font-size: 24rpx;
 	color: #989DA6;
 }
 .login-agree-text{
+	align-items: left;
 	font-size: 24rpx;
 	color: #989DA6;
 	text-align: justify;

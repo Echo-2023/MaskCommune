@@ -5,7 +5,7 @@
 			<image src="/static/data/user-cover.png" mode="aspectFill" class="user-avatar"></image>
 			<view class="user-right">
 				<view class="user-name">
-					徐丽丽
+					{{nickname}}
 				</view>
 				<view class="user-term">
 					2023-05-20到期
@@ -103,10 +103,36 @@
 	export default {
 		data() {
 			return {
-				serviceShow:false
+				serviceShow: false,
+				nickname: '新用户'
 			}
 		},
+		mounted(){
+			this.initPage();
+		},
 		methods: {
+			initPage(){
+				uni.getStorage({
+					key: 'user_info',
+					success: (res) => {
+						let user = res.data;
+						console.log(this.nickname,user);
+						if (user){
+							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
+							console.log(this.nickname)
+						} else {
+							uni.reLaunch({
+								url:'/pages/account/login'
+							})
+						}
+					},
+					fail: (res) => {
+						uni.reLaunch({
+							url:'/pages/account/login'
+						})
+					}
+				});
+			},
 			vipPage(){
 				uni.switchTab({
 					url:'/pages/vip/vip'

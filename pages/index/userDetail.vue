@@ -6,7 +6,7 @@
 			<view class="user-avatar-box">
 				<image :src="girl.avatar" mode="aspectFill" class="user-avatar"></image>
 			</view>
-			<view class="wechat-box">
+			<view class="wechat-box" @click="contactInfo(girl.id)">
 				<image src="/static/icon-wechat.png" mode="aspectFit" class="icon-wechat"></image>
 				查看微信
 			</view>
@@ -98,21 +98,11 @@
 
 <script>
 	var userImagesData = [
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png',
-					'/static/data/user-images-1.png'
-				];
+		'/static/data/user-images-1.png'
+	];
 	var userVideosData = [
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png',
-					'/static/data/user-images-2.png'
-				];
+		'/static/data/user-images-2.png'
+	];
 	export default {
 		data() {
 			return {
@@ -157,6 +147,25 @@
 				uni.previewImage({
 					urls:images
 				})
+			},
+			contactInfo(girlId){
+				let token = '';
+				if (token = this.$utils.authorization()){
+					console.log('已登录');
+				} else {
+					console.log('需要登陆');
+					uni.setStorage({
+						key: 'login_before_uri',
+						data: '/pages/index/userDetail?girl='+girlId,
+						success: function () {
+							console.log('登陆前url保存成功');
+						}
+					});
+					uni.navigateTo({
+						url:'/pages/account/login'
+					})
+				}
+				console.log(girlId)
 			},
 			async userInfo(){
 				let uri = '/api/content/girl';

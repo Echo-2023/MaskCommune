@@ -59,7 +59,21 @@ function generateRandomString(length) {
   return result;
 }
 
+function authorization()
+{
+	const key = '';
+	try {
+		const key = uni.getStorageSync('token');
+	} catch (e) {
+		console.log(e.message);
+	}
+	return key;
+}
 
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
 
 const headers = {
 	Qid: generateRandomString(16),
@@ -91,6 +105,8 @@ const request = function(uri, param)
 
 module.exports = {
 	headers,
-	request
+	request,
+	authorization,
+	validateEmail
 }
 

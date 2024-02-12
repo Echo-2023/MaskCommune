@@ -2,7 +2,7 @@
 	<view class="content">
 		<image src="/static/login-top-bg.png" mode="aspectFit" class="login-top-bg"></image>
 		<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
-		<image src="/static/login-bottom-bg.png" mode="aspectFit" class="login-bottom-bg"></image>
+<!-- 		<image src="/static/login-bottom-bg.png" mode="aspectFit" class="login-bottom-bg"></image> -->
 		<view class="login-title">
 			欢迎注册
 			<view class="login-app">
@@ -14,40 +14,48 @@
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-email.png" mode="aspectFit" class="login-icon"></image>
-			<input type="text" class="login-name" placeholder="请输入登录邮箱" placeholder-class="login-name-placeholder"/>
+			<input type="text" v-model="email" class="login-name" placeholder="请输入登录邮箱" placeholder-class="login-name-placeholder"/>
 		</view>
+		
 		<view class="login-item">
 			<image src="/static/icon-code.png" mode="aspectFit" class="login-icon"></image>
-			<input type="text" class="login-name" placeholder="请输入验证码" placeholder-class="login-name-placeholder"/>
-			<text class="send-code" :class="count == 60 ?'':'send-disabled'" @click="sendCode()">{{sendText}}</text>
+			<input type="text" v-model="verifyCode" class="login-name" placeholder="请输入验证码" placeholder-class="login-name-placeholder"/>
+			<text class="send-code" :class="count == 120 ?'':'send-disabled'" @click="sendCode()">{{sendText}}</text>
+		</view>
+		
+		<view class="login-item">
+			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
+			<input type="password" v-model="pass" class="login-name" placeholder="请输入登录密码" placeholder-class="login-name-placeholder"/>
+			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye"></image>
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input :type="isPassword?'password':'text'" class="login-name" placeholder="请输入登录密码" placeholder-class="login-name-placeholder"/>
-			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="passwordClick()"></image>
+			<input type="password" v-model="pass2"  class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
+			<image :src="isPassword2?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye"></image>
 		</view>
-		<view class="login-item">
-			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input :type="isPassword2?'password':'text'" class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
-			<image :src="isPassword2?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="password2Click()"></image>
-		</view>
-		<!-- <view class="login-tip-box">
-			<view @click="regist()">
-				邮箱免费注册
+		<view class="login-tip-box">
+			<view @click="login()">
+				使用已注册账号登录
 			</view>
 			<view @click="forget()">
 				忘记密码？
 			</view>
-		</view> -->
-		<view class="login-btn" @click="login()">
-			注册
 		</view>
 		<view class="login-agree-box">
 			<checkbox value="agree" class="login-check-box" color="#991D0D" style="transform:scale(0.7)" :checked="checked" />
 			<view class="login-agree-text">
+				注册前请仔细阅读<text class="login-agree-name">《服务与隐私条款（面具公社) 》</text>
+			</view>
+		</view> 
+		<view class="login-btn" @click="regist()">
+			注册
+		</view>
+		<!-- <view class="login-agree-box">
+			<checkbox value="agree" class="login-check-box" color="#991D0D" style="transform:scale(0.7)" :checked="checked" />
+			<view class="login-agree-text">
 				注册/登录即同意<text class="login-agree-name">《服务与隐私条款（面具公社) 》</text>,首次登录将自动注册
 			</view>
-		</view>
+		</view> -->
 	</view>
 </template>
 
@@ -55,15 +63,29 @@
 	export default {
 		data() {
 			return {
-				checked:false,
-				count:60,
+				checked:true,
+				count:120,
 				isPassword:true,
-				isPassword2:true
+				isPassword2:true,
+				email:'',
+				verifyCode:'',
+				pass:'',
+				pass2:'',
+				
 			}
+		},
+		mounted() {
+			
+			this.$nextTick(() => {
+				this.$forceUpdate();
+			})
 		},
 		computed:{
 			sendText(){
-				return this.count == 60 ? '获取验证码':(this.count+'秒后重新发送')
+				return this.count == 120 ? '获取验证码':(this.count+'秒后重新发送')
+			},
+			inputPass() {
+			  return this.isPassword ? 'password' : 'text';
 			}
 		},
 		methods: {
@@ -72,13 +94,93 @@
 			},
 			login(){
 				uni.reLaunch({
-					url:'/pages/index/index'
+					url:'/pages/account/login'
 				})
 			},
 			regist(){
-				uni.navigateTo({
-					url:'/pages/account/regist'
+				console.log(this.email);
+				console.log(this.pass)
+				if (!this.email){
+					return uni.showToast({
+						title:"邮箱不能为空",
+						icon: "none",
+						duration:2000
+					});
+				} else {
+					console.log(!this.$utils.validateEmail(this.email));
+					if (!this.$utils.validateEmail(this.email)) {
+						return uni.showToast({
+							title:"邮箱格式错误",
+							icon: "none",
+							duration:2000
+						});
+					}
+				}
+				
+				if (!this.verifyCode) {
+					return uni.showToast({
+						title:"验证码不能为空，请到输入的邮箱中查看",
+						icon: "none",
+						duration:2000
+					});
+				}
+				
+				if (!this.pass || !this.pass2) {
+					return uni.showToast({
+						title:"登录密码不能空",
+						icon: "none",
+						duration:2000
+					});
+				} else if (this.pass != this.pass2) {
+					return uni.showToast({
+						title:"两次输入的密码需要保持一致",
+						icon: "none",
+						duration:2000
+					});
+				} else if(this.pass.length < 8) {
+					return uni.showToast({
+						title:"密码长度不能少于8位",
+						icon: "none",
+						duration:2000
+					});
+				}
+				
+				if (!this.checked) {
+					return uni.showToast({
+						title:"请勾选服务与隐私条款",
+						icon: "none",
+						duration:2000
+					});
+				}
+				
+				uni.showLoading({
+					mask:true
 				})
+				let uri = '/api/register';
+				let param = {
+					"email": this.email,
+					"verifyCode": this.verifyCode,
+					"password": this.pass,
+					"password_confirmation": this.pass2
+				};
+				let rs = this.$utils.request(uri, param).then((res) => {
+					console.log(res);
+					uni.hideLoading();
+					if (res.code == 200) {
+						uni.setStorageSync('user_info', res.data);
+						uni.switchTab({
+							url:'/pages/settings/settings'
+						});
+					} else {
+						uni.showToast({
+							title: res.message,
+							icon: "none",
+							duration:5000
+						});
+					}
+				}).catch(function(error){
+					console.log(error);
+				});
 			},
 			forget(){
 				uni.navigateTo({
@@ -86,22 +188,39 @@
 				})
 			},
 			sendCode(){
-				if(this.count != 60){
+				if(this.count != 120){
 					return;
 				}
 				uni.showLoading({
 					mask:true
 				})
-				var index = setInterval(()=>{
-					if(this.count == 60){
-						uni.hideLoading()
+				let uri = '/api/verification/code';
+				let param = {
+					"email": this.email
+				};
+				let rs = this.$utils.request(uri, param).then((res) => {
+					console.log(res);
+					if (res.code != 200) {
+						uni.showToast({
+							title: res.msg,
+							icon: "none",
+							duration:2000
+						})
+					} else {
+						let index = setInterval(()=>{
+							if(this.count == 120){
+								uni.hideLoading()
+							}
+							this.count--;
+							if(this.count<1){
+								this.count = 120;
+								clearInterval(index)
+							}
+						},1000);
 					}
-					this.count--;
-					if(this.count<1){
-						this.count = 60;
-						clearInterval(index)
-					}
-				},1000)
+				}).catch(function(error){
+					console.log(error);
+				});
 			},
 			passwordClick(){
 				this.isPassword = !this.isPassword;
@@ -212,7 +331,7 @@
 	width: 710rpx;
 	display: flex;
 	flex-flow: row nowrap;
-	justify-content: space-between;
+	/* justify-content: space-between; */
 	font-size: 24rpx;
 	color: #989DA6;
 }
