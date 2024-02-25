@@ -2,7 +2,7 @@
 	<view class="content">
 		<image :src="headImg" mode="aspectFill" class="vip-bg"></image>
 		<view class="user-box">
-			<image :src="avatar" mode="aspectFill" class="user-avatar"></image>
+			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="homepage()"></image>
 			<view class="user-right">
 				<view class="user-name">
 					{{nickname}}
@@ -14,42 +14,42 @@
 		</view>
 		<view class="recharge-box">
 			<view class="recharge-title">
-				购买会员
+				{{currency}}充值范围
 			</view>
 			<view class="recharge-items">
-				<view class="recharge-item" :key="index" v-for="(vip,index) in vips" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
-					<view class="recharge-item-name">
-						{{vip.title}}
-					</view>
+				<view class="recharge-item" :key="index" v-for="(option,index) in options" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
 					<view class="recharge-item-amount">
 						<view class="recharge-item-num">
-							{{vip.price}}
+							{{option.from}} - {{option.to}}
 						</view>
 						{{unit}}
 					</view>
-					<view class="recharge-item-tip">
-						{{vip.sub_title}}
-					</view>
+					
 				</view>
 			</view>
 			<view class="vip-title">
-				VIP会员 享特权
+				充值金额
 			</view>
 			<view class="vip-title-line"></view>
 			<view class="vip-item">
-				<image src="/static/icon-vip-wechat.png" mode="aspectFit" class="icon-vip-wechat"></image>
+				<image src="/static/icon-diamond.png" mode="aspectFit" class="icon-diamond"></image>
 				<view class="vip-item-text">
-					{{wechatRight}}
+					{{diamond}}
 				</view>
 			</view>
 			<view class="vip-item">
-				<image src="/static/icon-diamond.png" mode="aspectFit" class="icon-diamond"></image>
+				<image src="/static/usdt.png" mode="aspectFit" class="icon-vip-wechat"></image>
 				<view class="vip-item-text">
-					{{diamondRight}}
+					{{calculateAmount}}
 				</view>
 			</view>
+			
+			<view>
+				1USDT等值与{{rate}}{{currency}}
+			</view>
+			
 			<view class="recharge-btn" @click="clickRecharge()">
-				立即开通（需支付{{price}}{{unit}} 剩余{{amount}}钻)
+				立即支付
 			</view>
 		</view>
 		<view class="recharge-success-box" v-if="showSuccess">
@@ -77,8 +77,9 @@
 	export default {
 		data() {
 			return {
-				basic:{},
+				basicInfo:{},
 				nickname: '新用户',
+				userName: '',
 				dueDate: "",
 				amount: "0",
 				isVIP: false,
@@ -86,45 +87,84 @@
 				avatar: "/static/data/default_avatar.jpg",
 				selectIndex: 0,
 				showSuccess:false,
+				currency: '钻石',
 				unit:'',
-				vips:[],
-				diamondRight: '',
-				price: 0
+				options:[],
+				diamond: 0,
+				usdt: 0,
+				option_id:0,
+				rate: 7
 			}
 		},
 		mounted(){
+			console.log('sss');
 			this.basicInfo = this.$utils.basicInfo();
-			console.log(this.basicInfo);
-			this.unit = this.basicInfo.currency_unit;
+			this.unit     = this.basicInfo.currency_unit;
+			this.currency = this.basicInfo.currency;
+			this.rate     = this.basicInfo.usdt_rate;
 			this.initPage();
-			this.loadVIPInfo();
+			this.cashInOption();
 		},
 		computed: {
-			wechatRight(){
-				if (this.vips.length && this.selectIndex < this.vips.length) {
-					this.price        = this.vips[this.selectIndex].price;
-					this.diamondRight = this.vips[this.selectIndex].diamond_right;
-					return this.vips[this.selectIndex].wechat_right;
-				} 
-				return '';	
+			calculateAmount(){
+				//console.log(this.options.length);
+				return this.getAmount();	
 			}
 		},
 		methods: {
 			selectItem(selectIndex){
 				this.selectIndex = selectIndex;
 			},
+			getAmount() {
+				if (this.options.length) {
+					let option     = this.options[this.selectIndex];
+					let from       = option.from;
+					let to         = option.to;
+					this.option_id = option.id;
+					let random     = Math.floor(Math.random() * (to - from )) + from;
+					this.usdt      = Math.round( random / this.rate);
+					this.diamond   = this.usdt * this.rate;
+				}
+				return this.usdt;
+			},
+			homepage() {
+				uni.reLaunch({
+					url:'/pages/settings/settings'
+				});
+			},
 			clickRecharge(){
 				if (this.price < this.amount) {
 					this.showSuccess = !this.showSuccess;
 				} else {
 					uni.showModal({
-							title: '提示',
-							content: '您的余额不足,请先充值？',
-							success: function(res) {
+							title: '充值确认',
+							content: '充值'+this.usdt+'USDT,可获得'+this.diamond+this.currency,
+							success: (res) => {
 							if (res.confirm) {
-							    uni.navigateTo({
-							    	url:'/pages/vip/charge-option'
-							    });
+								this.$utils.request('/api/transaction/init-pay', {
+									"option_id": this.option_id,
+									"login_mame": this.userName,
+									"app_amount": this.diamond,
+									"amount": this.usdt
+								}).then((res) => {
+									console.log(res);
+									if (res.code == 200) {
+										let data = res.data;
+										uni.navigateTo({
+											url:'/pages/settings/recharge?trade_num='+data.trade_num
+										});
+									} else {
+										uni.hideLoading();
+										uni.showToast({
+											title: res.message,
+											icon: "none",
+											duration:5000
+										});
+									}
+								}).catch(function(error){
+									console.log(error);
+								});
+							    
 							} else {
 								// 执行取消后的操作
 							}
@@ -146,6 +186,7 @@
 						console.log(this.nickname,user);
 						if (user){
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
+							this.userName = user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
 							this.isVip    = user['isVIP'] == '1' ? true : false;
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
@@ -164,11 +205,11 @@
 					}
 				});
 			},
-			loadVIPInfo(){
+			cashInOption(){
 				uni.showLoading({});
-				this.$utils.request('/api/content/vip-list', {}).then((res) => {
+				this.$utils.request('/api/options/cash-in', {}).then((res) => {
 					if (res.code == 200) {
-						this.vips = res.data
+						this.options = res.data
 						uni.hideLoading();
 					} else {
 						uni.hideLoading();
@@ -255,7 +296,7 @@ page{
 }
 .recharge-items{
 	width: 660rpx;
-	height: 420rpx;
+	height: 280rpx;
 	display: flex;
 	flex-flow: row wrap;
 	align-items: flex-start;
@@ -264,8 +305,8 @@ page{
 	margin-top: 20rpx;
 }
 .recharge-item{
-	width: 196rpx;
-	height: 190rpx;
+	width: 300rpx;
+	/*height: 190rpx;*/
 	border: 2rpx solid #981D0D;
 	display: flex;
 	flex-flow: column nowrap;
@@ -273,11 +314,7 @@ page{
 	justify-content: flex-start;
 	border-radius: 20rpx;
 }
-.recharge-item-name{
-	font-size: 26rpx;
-	color: #727272;
-	margin-top: 24rpx;
-}
+
 .recharge-item-amount{
 	display: flex;
 	flex-flow: row nowrap;
@@ -285,15 +322,10 @@ page{
 	justify-content: center;
 	font-size: 36rpx;
 	color: #555555;
-	margin-top: 16rpx;
+	margin-top: 6rpx;
 }
 .recharge-item-num{
 	font-size: 42rpx;
-}
-.recharge-item-tip{
-	font-size: 24rpx;
-	color: #b4b4b4;
-	margin-top: 6rpx;
 }
 .recharge-selected{
 	background-color: #981D0D;

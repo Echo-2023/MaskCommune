@@ -25,7 +25,7 @@ function getDAesString(encrypted,key,iv){//解密
     return decrypted.toString(CryptoJS.enc.Utf8);     
 }
 
-function getAES(data){ //加密
+function encode(data){ //加密
     const key  = config.CRYPTO_KEY;//'DJTggiIeOBu3blSX';  //密钥   可以修改，自定义
     const iv   = config.CRYPTO_IV; //'2oFtRtKzfnkxLB18';      //偏移量   可以修改，自定义
     const encrypted =getAesString(data,key,iv); //密文
@@ -33,7 +33,7 @@ function getAES(data){ //加密
     return encrypted;
 }
 
-function getDAes(data){//解密
+function decode(data){//解密
     var key  = config.CRYPTO_KEY;//'DJTggiIeOBu3blSX';  //密钥  可以修改，自定义
     var iv   = config.CRYPTO_IV;//'2oFtRtKzfnkxLB18';  //偏移量  可以修改，自定义
     var decryptedStr =getDAesString(data,key,iv);
@@ -43,7 +43,7 @@ function getDAes(data){//解密
 const sign = function (v, domain, deviceId){
 	const encString = v + "|" + deviceId + "|" + domain;
 	//console.log('string:' + encString);
-	return getAES(encString);
+	return encode(encString);
 }
 
 // 生成指定长度的随机字符串
@@ -61,13 +61,12 @@ function generateRandomString(length) {
 
 function authorization()
 {
-	const key = '';
 	try {
-		const key = uni.getStorageSync('token');
+		const userInfo = uni.getStorageSync('user_info');
 	} catch (e) {
 		console.log(e.message);
 	}
-	return key;
+	return userInfo;
 }
 
 function validateEmail(email) {
@@ -87,6 +86,20 @@ const headers = {
 const request = function(uri, param)
 {
 	//console.log(headers);
+	uni.getStorage({
+		key: 'user_info',
+		success: (res) => {
+			let user = res.data;
+			if (user){
+				let token = user['token'] ? user['token'] : '';
+				if (token) {
+					headers.Authorization = "Bearer " + token;
+				}
+				console.log(this.nickname)
+			} 
+		}
+	});
+	
 	return new Promise((resolve, reject) => {
 		uni.request({
 			url : config.API_HOST + uri,
@@ -103,10 +116,29 @@ const request = function(uri, param)
 	});
 }
 
+function basicInfo(){
+	let info = uni.getStorageSync('basic_info');
+	if (!info) {
+		this.request('/api/app/basic', {}).then((res) => {
+			info = res.data;
+			console.log(res);
+			if (res.code == 200) {
+				uni.setStorageSync('basic_info', res.data);
+			} 
+		}).catch(function(error){
+			console.log(error);
+		});
+	}
+	return info;
+}
+
 module.exports = {
 	headers,
 	request,
 	authorization,
-	validateEmail
+	validateEmail,
+	encode,
+	decode,
+	basicInfo
 }
 

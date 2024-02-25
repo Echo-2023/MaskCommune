@@ -25,13 +25,13 @@
 		
 		<view class="login-item">
 			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input type="password" v-model="pass" class="login-name" placeholder="请输入登录密码" placeholder-class="login-name-placeholder"/>
-			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye"></image>
+			<input :type="isPassword?'password':'text'" :value="pass" @input="pass = $event.target.value" class="login-name" placeholder="请输入登录密码" placeholder-class="login-name-placeholder"/>
+			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="passwordClick()"></image>
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input type="password" v-model="pass2"  class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
-			<image :src="isPassword2?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye"></image>
+			<input :type="isPassword2?'password':'text'" :value="pass2" @input="pass2 = $event.target.value" class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
+			<image :src="isPassword2?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="password2Click()"></image>
 		</view>
 		<view class="login-tip-box">
 			<view @click="login()">

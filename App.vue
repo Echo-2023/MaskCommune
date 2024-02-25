@@ -13,9 +13,6 @@
 		mounted(){
 			
 		},
-		methods: {
-			
-		}
 	}
 </script>
 

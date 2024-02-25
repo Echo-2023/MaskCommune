@@ -14,11 +14,11 @@
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-email.png" mode="aspectFit" class="login-icon"></image>
-			<input type="text" class="login-name" placeholder="请输入登录邮箱" placeholder-class="login-name-placeholder"/>
+			<input type="text" class="login-name" v-model="email" placeholder="请输入登录邮箱" placeholder-class="login-name-placeholder"/>
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input :type="isPassword?'password':'text'" class="login-name" placeholder="请输入密码" placeholder-class="login-name-placeholder"/>
+			<input :type="isPassword?'password':'text'" class="login-name" placeholder="请输入密码" :value="pass" @input="pass = $event.target.value" placeholder-class="login-name-placeholder"/>
 			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="passwordClick()"></image>
 		</view>
 		<view class="login-tip-box">
@@ -41,6 +41,8 @@
 	export default {
 		data() {
 			return {
+				email: "",
+				pass: "",
 				checked:false,
 				isPassword:true
 			}
@@ -64,9 +66,64 @@
 				})
 			},
 			login(){
-				uni.reLaunch({
-					url:'/pages/index/index'
-				})
+				if (!this.email){
+					return uni.showToast({
+						title:"邮箱不能为空",
+						icon: "none",
+						duration:2000
+					});
+				} else {
+					console.log(!this.$utils.validateEmail(this.email));
+					if (!this.$utils.validateEmail(this.email)) {
+						return uni.showToast({
+							title:"邮箱格式错误",
+							icon: "none",
+							duration:2000
+						});
+					}
+				}
+				if (!this.pass) {
+					return uni.showToast({
+						title:"密码不能为空",
+						icon: "none",
+						duration:2000
+					});
+				} else if(this.pass.length < 8) {
+					return uni.showToast({
+						title:"密码输入有误",
+						icon: "none",
+						duration:2000
+					});
+				}
+				
+				if (this.email && this.pass) {
+					let uri = '/api/login';
+					let param = {
+						"email": this.email,
+						"password": this.$utils.encode(this.pass)
+					};
+					let rs = this.$utils.request(uri, param).then((res) => {
+						console.log(res);
+						uni.hideLoading();
+						if (res.code == 200) {
+							uni.setStorageSync('user_info', res.data);
+							uni.switchTab({
+								url:'/pages/settings/settings'
+							});
+						} else {
+							uni.showToast({
+								title: res.message,
+								icon: "none",
+								duration:5000
+							});
+						}
+					}).catch(function(error){
+						console.log(error);
+					});
+				}
+				// uni.reLaunch({
+				// 	url:'/pages/index/index'
+				// })
 			},
 			regist(){
 				uni.navigateTo({

@@ -1,30 +1,36 @@
 <template>
 	<view class="content">
-		<image src="/static/setting-bg.png" mode="aspectFit" class="setting-bg"></image>
+		<image :src="headImg" mode="aspectFill" class="setting-bg"></image>
 		<view class="user-box">
-			<image src="/static/data/user-cover.png" mode="aspectFill" class="user-avatar"></image>
+			<image :src="avatar" mode="aspectFill" class="user-avatar"></image>
 			<view class="user-right">
 				<view class="user-name">
 					{{nickname}}
 				</view>
-				<view class="user-term">
-					2023-05-20到期
+				<view class="user-term" v-if="isVIP">
+					{{dueDate}}到期
 				</view>
 			</view>
 		</view>
 		<view class="vip-card-box">
 			<image src="/static/vip-card-bg.png" mode="top center" class="vip-card-bg"></image>
 			<image src="/static/icon-vip-diamond.png" mode="aspectFit" class="icon-vip-diamond"></image>
-			<view class="vip-card-center">
+			<view class="vip-card-center" v-if="isVIP">
 				<view class="vip-card-title">
 					会员权益卡
 				</view>
 				<view class="vip-card-date">
-					会员权益截至日期：2025-03-05
+					会员权益截至日期：{{dueDate}}
 				</view>
 			</view>
-			<view class="vip-card-btn" @click="vipPage()">
+			<view class="vip-card-btn" @click="vipPage()" v-if="isVIP">
 				续费会员
+			</view>
+			<view class="vip-card-btn" @click="vipPage()" v-else-if="amount > 0">
+				购买会员
+			</view>
+			<view class="vip-card-btn" @click="rechargePage()" v-else>
+				账户充值
 			</view>
 		</view>
 		<view class="account-box">
@@ -33,7 +39,7 @@
 					账户充值
 				</view>
 				<view class="account-balance-text">
-					余额:<text class="account-balance">5400</text>钻
+					余额:<text class="account-balance">{{amount}}</text>钻
 				</view>
 			</view>
 			<view class="account-bottom">
@@ -75,7 +81,7 @@
 			</view>
 			<view class="list-item">
 				<image src="/static/icon-gywm.png" mode="aspectFit" class="icon-gywm"></image>
-				<view class="list-item-text">
+				<view class="list-item-text" @click="aboutUS()">
 					关于我们
 				</view>
 				<image src="/static/icon-arrow-right.png" mode="aspectFit" class="icon-arrow-right"></image>
@@ -104,7 +110,12 @@
 		data() {
 			return {
 				serviceShow: false,
-				nickname: '新用户'
+				nickname: '新用户',
+				dueDate: "",
+				amount: "0",
+				isVIP: false,
+				headImg: "/static/data/default_head.jpg",
+				avatar: "/static/data/default_avatar.jpg"
 			}
 		},
 		mounted(){
@@ -119,6 +130,10 @@
 						console.log(this.nickname,user);
 						if (user){
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
+							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
+							this.isVip    = user['isVIP'] == '1' ? true : false;
+							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
+							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
 							console.log(this.nickname)
 						} else {
 							uni.reLaunch({
@@ -140,7 +155,7 @@
 			},
 			rechargePage(){
 				uni.navigateTo({
-					url:'/pages/settings/recharge'
+					url:'/pages/vip/charge-option'
 				})
 			},
 			serviceClick(){
@@ -162,6 +177,12 @@
 						})
 					}
 				});
+			},
+			aboutUS() {
+				uni.showModal({
+					title: '温馨提醒',
+					content: '关于我们的信息，正在赶来的路上，请耐心等候'
+				})
 			},
 			expendListPage(){
 				uni.navigateTo({

@@ -7,10 +7,7 @@
 		<view class="recharge-box">
 			<image src="/static/recharge-bg.png" mode="aspectFit" class="recharge-bg"></image>
 			<view class="recharge-title1">
-				充值用户：<text class="recharge-text">徐莉莉</text>
-			</view>
-			<view class="recharge-title2">
-				充值方式：<text class="recharge-text">微信支付</text>
+				充值用户：<text class="recharge-text">{{nickname}}</text>
 			</view>
 			<view class="recharge-countdown-box">
 				支付剩余时间
@@ -25,19 +22,24 @@
 			<view class="recharge-amount">
 				590
 				<view class="recharge-amount-text">
-					钻
+					USDT
 				</view>
 			</view>
 			<view class="recharge-tip">
 				请扫描下方微信二维码付款
 			</view>
-			<image src="/static/data/recharge-qrcode.png" mode="aspectFit" class="recharge-qrcode"></image>
-			<view class="back" @click="indexPage()">
-				返回首页
+			
+			<image :src="qr_code" mode="aspectFit" class="recharge-qrcode"></image>
+			<view class="recharge-addr">
+				地址:{{receive_addr}}
 			</view>
 			<view class="recharge-price">
-				1人民币=1钻石
+				1USDT={{rate}} {{currency}}
 			</view>
+			<view class="back" @click="indexPage()">
+				确认已付款
+			</view>
+			
 		</view>
 	</view>
 </template>
@@ -46,8 +48,20 @@
 	export default {
 		data() {
 			return {
-				
+				'trade_num': '',
+				'nickname': '',
+				'countdown': '',
+				'unit': '',
+				'currency': '',
+				'rate': '10',
+				'qr_code': '',
+				'receive_addr': '',
+				'protocol': '',
+				'limit_time':'15'
 			}
+		},
+		mounted(){
+			this.initData();
 		},
 		methods: {
 			backPage(){
@@ -57,6 +71,38 @@
 				uni.reLaunch({
 					url:'/pages/index/index'
 				})
+			},
+			initData(){
+				uni.getStorage({
+					key: 'user_info',
+					success: (res) => {
+						let user = res.data;
+						console.log(this.nickname,user);
+						if (user){
+							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
+							this.userName = user['userName'];
+							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
+							console.log(this.nickname)
+						} else {
+							uni.reLaunch({
+								url:'/pages/account/login'
+							})
+						}
+					},
+					fail: (res) => {
+						uni.reLaunch({
+							url:'/pages/account/login'
+						})
+					}
+				});
+				this.basicInfo = this.$utils.basicInfo();
+				this.unit      = this.basicInfo.currency_unit;
+				this.currency  = this.basicInfo.currency;
+				this.rate      = this.basicInfo.usdt_rate;
+				this.qr_code   = this.basicInfo.qr_code,
+				this.receive_addr = this.basicInfo.receive_addr;
+				this.limit_time  = this.basicInfo.limit_time;
+				this.procotol    = this.basicInfo.protocol;
 			}
 		}
 	}
@@ -113,21 +159,24 @@
 	z-index: 2;
 	align-self: flex-start;
 }
-.recharge-title2{
+.recharge-addr{
+	width: 610rpx;
 	margin-left: 76rpx;
 	margin-top: 20rpx;
 	font-size: 32rpx;
 	color: #333333;
 	z-index: 2;
 	align-self: flex-start;
+	word-wrap: break-word;
 }
 .recharge-text{
+	width: 500rpx;
 	margin-left: 20rpx;
 	color: #666666;
 	z-index: 2;
 }
 .recharge-countdown-box{
-	margin-top: 100rpx;
+	margin-top: 50rpx;
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
@@ -189,7 +238,7 @@
 	font-weight: bold;
 	color: #FFFFFF;
 	text-shadow: 0rpx 0rpx 24rpx rgba(179,0,10,0.7);
-	margin-top: 53rpx;
+	margin-top: 26rpx;
 }
 .recharge-price{
 	font-size: 30rpx;
@@ -197,43 +246,4 @@
 	margin-top: 30rpx;
 	z-index: 2;
 }
-/* 
- 
- <view class="recharge-box">
- 	<image src="/static/recharge-bg.png" mode="aspectFit" class="recharge-bg"></image>
- 	<view class="recharge-title1">
- 		充值用户：<text class="recharge-text">徐莉莉</text>
- 	</view>
- 	<view class="recharge-title2">
- 		充值方式：<text class="recharge-text">微信支付</text>
- 	</view>
- 	<view class="recharge-countdown-box">
- 		支付剩余时间
- 		<view class="recharge-countdown-time">
- 			07
- 		</view>
- 		:
- 		<view class="recharge-countdown-time">
- 			36
- 		</view>
- 	</view>
- 	<view class="recharge-amount">
- 		590
- 		<view class="recharge-amount-text">
- 			钻
- 		</view>
- 	</view>
- 	<view class="recharge-tip">
- 		请扫描下方微信二维码付款
- 	</view>
- 	<image src="/static/data/recharge-qrcode.png" mode="aspectFit" class="recharge-qrcode"></image>
- 	<view class="back">
- 		返回
- 	</view>
- 	<view class="recharge-price">
- 		1人民币=1钻石
- 	</view>
- </view>
- 
- */
 </style>

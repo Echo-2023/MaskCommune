@@ -7,6 +7,12 @@
 			}
 		},
 		{
+			"path": "pages/vip/charge-option",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path" : "pages/vip/vip",
 			"style" : 
 			{
