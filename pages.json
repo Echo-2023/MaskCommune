@@ -37,7 +37,15 @@
 			}
 		},
 		{
-			"path" : "pages/settings/expendList",
+			"path" : "pages/settings/consumption",
+			"style" : 
+			{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh" : false
+			}
+		},
+		{
+			"path" : "pages/settings/cash-in",
 			"style" : 
 			{
 				"navigationStyle": "custom",

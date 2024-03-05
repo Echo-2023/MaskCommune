@@ -143,7 +143,7 @@
 							if (res.confirm) {
 								this.$utils.request('/api/transaction/init-pay', {
 									"option_id": this.option_id,
-									"login_mame": this.userName,
+									"login_name": this.userName,
 									"app_amount": this.diamond,
 									"amount": this.usdt
 								}).then((res) => {

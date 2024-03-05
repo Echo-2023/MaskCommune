@@ -95,7 +95,6 @@ const request = function(uri, param)
 				if (token) {
 					headers.Authorization = "Bearer " + token;
 				}
-				console.log(this.nickname)
 			} 
 		}
 	});
@@ -110,7 +109,7 @@ const request = function(uri, param)
 				resolve(res.data);
 			},
 			fail: function(err) {
-				reject(err); // 将异步请求的错误传递给Promise对象
+				reject(err.message); // 将异步请求的错误传递给Promise对象
 			}
 		});
 	});
@@ -120,13 +119,27 @@ function basicInfo(){
 	let info = uni.getStorageSync('basic_info');
 	if (!info) {
 		this.request('/api/app/basic', {}).then((res) => {
-			info = res.data;
-			console.log(res);
 			if (res.code == 200) {
 				uni.setStorageSync('basic_info', res.data);
 			} 
 		}).catch(function(error){
-			console.log(error);
+			console.log(error.message);
+		});
+	}
+	return info;
+}
+
+function userInfo(reload=false){
+	let info = uni.getStorageSync('user_info');
+	if (!info || reload) {
+		this.request('/api/member/info', {}).then((res) => {
+			info = res.data;
+			if (res.code == 200) {
+				uni.clearStorageSync('user_info');
+				uni.setStorageSync('user_info', info);
+			} 
+		}).catch(function(error){
+			console.log(error.message);
 		});
 	}
 	return info;
@@ -139,6 +152,7 @@ module.exports = {
 	validateEmail,
 	encode,
 	decode,
-	basicInfo
+	basicInfo,
+	userInfo
 }
 

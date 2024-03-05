@@ -43,11 +43,11 @@
 				</view>
 			</view>
 			<view class="account-bottom">
-				<view class="icon-item">
+				<view class="icon-item" @click="cashInPage()">
 					<image src="/static/icon-czlb.png" mode="aspectFit" class="icon-czlb"></image>
 					充值列表
 				</view>
-				<view class="icon-item" @click="expendListPage()">
+				<view class="icon-item" @click="consumptionPage()">
 					<image src="/static/icon-xfjl.png" mode="aspectFit" class="icon-xfjl"></image>
 					消费记录
 				</view>
@@ -94,11 +94,14 @@
 			<view class="service-center">
 				<image src="/static/service-bg.png" mode="aspectFit" class="service-bg"></image>
 				<view class="service-phone">
-					联系电话：18569352076
+					Telegram:{{telegram}}
 				</view>
-				<view class="service-call" @click="call()">
+				<view class="service-phone">
+					E-Mail:{{email}}
+				</view>
+				<!-- <view class="service-call" @click="call()">
 					拨打电话
-				</view>
+				</view> -->
 				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="serviceClick()"></image>
 			</view>
 		</view>
@@ -115,7 +118,10 @@
 				amount: "0",
 				isVIP: false,
 				headImg: "/static/data/default_head.jpg",
-				avatar: "/static/data/default_avatar.jpg"
+				avatar: "/static/data/default_avatar.jpg",
+				telegram: "",
+				email: "",
+				app_name: ""
 			}
 		},
 		mounted(){
@@ -123,30 +129,25 @@
 		},
 		methods: {
 			initPage(){
-				uni.getStorage({
-					key: 'user_info',
-					success: (res) => {
-						let user = res.data;
-						console.log(this.nickname,user);
-						if (user){
-							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
-							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
-							this.isVip    = user['isVIP'] == '1' ? true : false;
-							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
-							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
-							console.log(this.nickname)
-						} else {
-							uni.reLaunch({
-								url:'/pages/account/login'
-							})
-						}
-					},
-					fail: (res) => {
-						uni.reLaunch({
-							url:'/pages/account/login'
-						})
-					}
-				});
+				let basicInfo = this.$utils.basicInfo();
+				this.telegram = basicInfo.telegram;
+				this.email    = basicInfo.email;
+				this.app_name = basicInfo.app_name;
+				let user      = this.$utils.userInfo();
+				if (user){
+					this.nickname = user['nickname'] ? user['nickname'] : user['name'];
+					this.dueDate  = user['due_date'] ? user['due_date'] : '';
+					this.isVIP    = user['is_vip'] == '1' ? true : false;
+					this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
+					this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
+					this.amount   = user['amount'] ? user['amount'] : this.amount;
+					console.log('init page', this.nickname)
+				} else {
+					uni.reLaunch({
+						url:'/pages/account/login'
+					})
+				}
+				
 			},
 			vipPage(){
 				uni.switchTab({
@@ -184,9 +185,14 @@
 					content: '关于我们的信息，正在赶来的路上，请耐心等候'
 				})
 			},
-			expendListPage(){
+			consumptionPage(){
 				uni.navigateTo({
-					url:'/pages/settings/expendList'
+					url:'/pages/settings/consumption'
+				})
+			},
+			cashInPage(){
+				uni.navigateTo({
+					url:'/pages/settings/cash-in'
 				})
 			},
 			logout(){

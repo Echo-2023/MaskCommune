@@ -56,18 +56,18 @@
 			<view class="recharge-success">
 				<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
 				<view class="recharge-type">
-					半年会员
+					{{vipTitle}}
 				</view>
 				<view class="recharge-tip">
 					恭喜您升级为
 				</view>
 				<view class="recharge-type-title">
-					半年会员
+					{{vipTitle}}
 				</view>
 				<view class="recharge-success-btn" @click="indexPage()">
 					返回首页
 				</view>
-				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="clickRecharge()"></image>
+				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="closePop()"></image>
 			</view>
 		</view>
 	</view>
@@ -89,7 +89,10 @@
 				unit:'',
 				vips:[],
 				diamondRight: '',
-				price: 0
+				price: 0,
+				vipTitle: '',
+				vipId:0,
+				appAmount: 0,
 			}
 		},
 		mounted(){
@@ -104,6 +107,8 @@
 				if (this.vips.length && this.selectIndex < this.vips.length) {
 					this.price        = this.vips[this.selectIndex].price;
 					this.diamondRight = this.vips[this.selectIndex].diamond_right;
+					this.vipTitle     = this.vips[this.selectIndex].title;
+					this.vipId        = this.vips[this.selectIndex].id;
 					return this.vips[this.selectIndex].wechat_right;
 				} 
 				return '';	
@@ -114,9 +119,32 @@
 				this.selectIndex = selectIndex;
 			},
 			clickRecharge(){
-				if (this.price < this.amount) {
-					this.showSuccess = !this.showSuccess;
+				//console.log(this.price, this.appAmount)
+				uni.showLoading();
+				if (parseInt(this.price) <= parseInt(this.appAmount)) {
+					let uri = "/api/member/purchasing-vip";
+					let data = {'vipId': this.vipId};
+					this.$utils.request(uri, data).then((res) => {
+						if (res.code == 200 && res.data.result == 'successful') {
+							
+							uni.hideLoading();
+							this.showSuccess = !this.showSuccess;
+						} else {
+							uni.hideLoading();
+							uni.showToast({
+								title: res.message,
+								icon: "none",
+								duration:5000
+							});
+						}
+						this.$utils.userInfo(true);
+						this.initPage();
+					}).catch((err) => {
+						console.log(err.message);
+					});
+					
 				} else {
+					uni.hideLoading();
 					uni.showModal({
 							title: '提示',
 							content: '您的余额不足,请先充值？',
@@ -131,6 +159,9 @@
 						}
 					})
 				}
+			},
+			closePop(){
+				this.showSuccess = !this.showSuccess;
 			},
 			indexPage(){
 				this.clickRecharge();
@@ -150,7 +181,8 @@
 							this.isVip    = user['isVIP'] == '1' ? true : false;
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
-							console.log(this.nickname)
+							this.appAmount= user['amount'] ? user['amount'] : this.appAmount;
+							
 						} else {
 							uni.reLaunch({
 								url:'/pages/account/login'
@@ -179,7 +211,7 @@
 						});
 					}
 				}).catch(function(error){
-					console.log(error);
+					console.log(error.message);
 				});
 			}
 		}

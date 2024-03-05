@@ -9,18 +9,21 @@
 			<view class="recharge-title1">
 				充值用户：<text class="recharge-text">{{nickname}}</text>
 			</view>
-			<view class="recharge-countdown-box">
+			<view class="recharge-countdown-box" v-if="showCountdown">
 				支付剩余时间
-				<view class="recharge-countdown-time">
-					07
+				<view class="recharge-countdown-time" >
+					{{minutes}}
 				</view>
 				:
 				<view class="recharge-countdown-time">
-					36
+					{{seconds}}
 				</view>
 			</view>
+			<view class="recharge-countdown-box" v-if="!showCountdown">
+				超时未支付，已取消
+			</view>
 			<view class="recharge-amount">
-				590
+				{{amount}}
 				<view class="recharge-amount-text">
 					USDT
 				</view>
@@ -36,8 +39,8 @@
 			<view class="recharge-price">
 				1USDT={{rate}} {{currency}}
 			</view>
-			<view class="back" @click="indexPage()">
-				确认已付款
+			<view class="back" @click="confirmTrade()">
+				{{btnText}}
 			</view>
 			
 		</view>
@@ -48,29 +51,75 @@
 	export default {
 		data() {
 			return {
-				'trade_num': '',
+				'amount':0,
 				'nickname': '',
-				'countdown': '',
 				'unit': '',
 				'currency': '',
 				'rate': '10',
 				'qr_code': '',
 				'receive_addr': '',
 				'protocol': '',
-				'limit_time':'15'
+				'limit_time':'15',
+				'minutes': 15,
+				'seconds':0,
+				'showCountdown': true,
+				'btnText': '确认已付款'
 			}
 		},
 		mounted(){
 			this.initData();
+			this.tradeInfo();
+			this.countdown();
 		},
 		methods: {
 			backPage(){
 				uni.navigateBack();
 			},
-			indexPage(){
-				uni.reLaunch({
-					url:'/pages/index/index'
-				})
+			confirmTrade(){
+				if (this.showCountdown) {
+					uni.showLoading({
+						mask:true
+					})
+					const {trade_num} = this.$route.query;
+					this.$utils.request('/api/transaction/confirm', {'trade_num':trade_num}).then((res) => {
+						if (res.code == 200) {
+							uni.hideLoading();
+							let data = res.data;
+							let msg  = '支付成功';
+							this.$utils.userInfo(true);
+							if (!data.status) {
+								msg = '支付遇到点小问题，请联系客服';
+							}
+							uni.showToast({
+								title: msg,
+								icon: "none",
+								duration:2000,
+								success: (res) => {
+									uni.reLaunch({
+										url:'/pages/settings/settings'
+									});
+								}
+							});
+							console.log(data)
+						} else {
+							uni.showToast({
+								title: res.message,
+								icon: "none",
+								duration:3000
+							});
+						}
+					}).catch((err) => {
+						uni.showToast({
+							title: err,
+							icon: "none",
+							duration:3000
+						});
+					});
+				} else {
+					uni.reLaunch({
+						url:'/pages/vip/charge-option'
+					});
+				}
 			},
 			initData(){
 				uni.getStorage({
@@ -95,14 +144,61 @@
 						})
 					}
 				});
-				this.basicInfo = this.$utils.basicInfo();
-				this.unit      = this.basicInfo.currency_unit;
-				this.currency  = this.basicInfo.currency;
-				this.rate      = this.basicInfo.usdt_rate;
-				this.qr_code   = this.basicInfo.qr_code,
+				this.basicInfo    = this.$utils.basicInfo();
+				this.unit         = this.basicInfo.currency_unit;
+				this.currency     = this.basicInfo.currency;
+				this.rate         = this.basicInfo.usdt_rate;
+				this.qr_code      = this.basicInfo.qr_code,
 				this.receive_addr = this.basicInfo.receive_addr;
-				this.limit_time  = this.basicInfo.limit_time;
-				this.procotol    = this.basicInfo.protocol;
+				this.procotol     = this.basicInfo.protocol;
+			},
+			tradeInfo() {
+				const {trade_num} = this.$route.query;
+				let uri = '/api/transaction/info';
+				let param = {
+					"trade_num": trade_num,
+					"login_name": this.userName
+				}
+				console.log(trade_num);
+				this.$utils.request(uri, param).then((res) => {
+					if (res.code == 200) {
+						let data = res.data;
+						this.amount  = data.amount;
+						this.minutes = data.minutes;
+						this.seconds = data.seconds;
+						if (this.minutes == 0 && this.seconds == 0) {
+							this.showCountdown = false;
+							this.btnText = "重新支付"
+						}
+						console.log(this.amount, data)
+					} else {
+						uni.showToast({
+							title: res.message,
+							icon: "none",
+							duration:3000
+						});
+					}
+				}).catch((err) => {
+					uni.showToast({
+						title: err,
+						icon: "none",
+						duration:3000
+					});
+				});
+			},
+			countdown() {
+				const timer = setInterval(() => {
+				    if (this.seconds > 0) {
+				      this.seconds--;
+				    } else {
+				      if (this.minutes > 0) {
+				        this.minutes--;
+				        this.seconds = 59;
+				      } else {
+				        clearInterval(timer);
+				      }
+				    }
+				  }, 1000);
 			}
 		}
 	}
