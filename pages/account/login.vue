@@ -107,8 +107,9 @@
 						uni.hideLoading();
 						if (res.code == 200) {
 							uni.setStorageSync('user_info', res.data);
+							let beforeUri = '/pages/settings/settings';
 							uni.switchTab({
-								url:'/pages/settings/settings'
+								url: beforeUri
 							});
 						} else {
 							uni.showToast({

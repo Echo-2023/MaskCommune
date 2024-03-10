@@ -135,9 +135,9 @@
 				this.app_name = basicInfo.app_name;
 				let user      = this.$utils.userInfo();
 				if (user){
-					this.nickname = user['nickname'] ? user['nickname'] : user['name'];
-					this.dueDate  = user['due_date'] ? user['due_date'] : '';
-					this.isVIP    = user['is_vip'] == '1' ? true : false;
+					this.nickname = user['userName'] ? user['userName'] : user['name'];
+					this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
+					this.isVIP    = user['isVIP'] == '1' ? true : false;
 					this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 					this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
 					this.amount   = user['amount'] ? user['amount'] : this.amount;
@@ -146,6 +146,14 @@
 					uni.reLaunch({
 						url:'/pages/account/login'
 					})
+				}
+				
+				let beforeUri = uni.getStorage('login_before_uri');
+				console.log(beforeUri);
+				if (beforeUri) {
+					uni.reLaunch({
+						url:beforeUri
+					});
 				}
 				
 			},

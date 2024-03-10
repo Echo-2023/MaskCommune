@@ -40,7 +40,19 @@
 					</view>
 				</view>
 			</template>
-			
+			<template v-if="logs.length === 0">
+				<view class="bottom-line"></view>
+				<view class="expand-item">
+					<view class="icon-expand-box">
+						<image src="/static/icon-expand.png" mode="aspectFit" class="icon-expand"></image>
+					</view>
+					<view class="expand-center">
+						<view class="expand-name">
+							您稍未有过任何充值
+						</view>
+					</view>
+				</view>
+			</template>
 		</view>
 	</view>
 </template>
@@ -102,7 +114,9 @@
 				});
 			},
 			backPage(){
-				uni.navigateBack();
+				uni.switchTab({
+					url:'/pages/settings/settings'
+				});
 			}
 		}
 	}

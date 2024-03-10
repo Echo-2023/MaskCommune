@@ -1,49 +1,58 @@
 <template>
 	<view class="content">
-		<image src="/static/expend-bg.png" mode="aspectFit" class="expend-bg"></image>
+		<image :src="headImg"  mode="aspectFill" class="expend-bg"></image>
 		<view class="header">
 			<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="backPage()"></image>
 			消费记录
 		</view>
 		<view class="balance-tip">
-			余额(钻）
+			余额({{unit}}）
 		</view>
 		<view class="balance-total">
-			68,950
-			<text class="balance-total-tip">钻</text>
+			{{appAmount}}
+			<text class="balance-total-tip">{{unit}}</text>
 		</view>
 		<view class="balance-tip">
-			累计消费: 32,600钻
+			累计消费金额: {{totalAppAmount}} {{unit}}
 		</view>
 		<view class="expand-list-box">
-			<template v-for="(item,index) in expandList">
-				<view class="bottom-line" v-if="index>0">
-					
-				</view>
+			<template v-for="(item,index) in logs">
+				<view class="bottom-line" v-if="index>0"></view>
 				<view class="expand-item">
 					<view class="icon-expand-box">
 						<image src="/static/icon-expand.png" mode="aspectFit" class="icon-expand"></image>
 					</view>
 					<view class="expand-center">
 						<view class="expand-name">
-							消费名称消费名称
+							{{item.desc}}
 						</view>
 						<view class="expand-time">
-							2023-11-26 12:57
+							{{item.created_at}}
 						</view>
 					</view>
 					<view class="expand-right">
 						<view class="expand-amount">
-							-1000
+							-{{item.app_amount}}{{unit}}
 						</view>
 						<view class="expand-status">
-							消费成功
+							{{item.status_info}}
 						</view>
 					</view>
 				</view>
-				
 			</template>
-			
+			<template v-if="logs.length === 0">
+				<view class="bottom-line"></view>
+				<view class="expand-item">
+					<view class="icon-expand-box">
+						<image src="/static/icon-expand.png" mode="aspectFit" class="icon-expand"></image>
+					</view>
+					<view class="expand-center">
+						<view class="expand-name">
+							您稍未有过任何消费
+						</view>
+					</view>
+				</view>
+			</template>
 		</view>
 	</view>
 </template>
@@ -52,79 +61,63 @@
 	export default {
 		data() {
 			return {
-				expandList:[
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-					{
-						name:'消费名称消费名称',
-						time:'2023-11-26 12:57',
-						amount:'1000',
-						status:'消费成功'
-					},
-				]
+				headImg: "",
+				appAmount: 0,
+				totalAppAmount: 0,
+				unit:'',
+				logs:[]
 			}
 		},
+		mounted(){
+			this.initPage();
+		},
 		methods: {
+			initPage(){
+				let basicInfo = this.$utils.basicInfo();
+				this.telegram = basicInfo.telegram;
+				this.email    = basicInfo.email;
+				this.unit     = basicInfo.currency_unit;
+				this.app_name = basicInfo.app_name;
+				let user      = this.$utils.userInfo();
+				if (user){
+					this.nickname  = user['nickname'] ? user['nickname'] : user['userName'];
+					this.dueDate   = user['dueDate'] ? user['dueDate'] : '';
+					this.isVip     = user['isVIP'] == '1' ? true : false;
+					this.headImg   = user['headImg'] ? user['headImg'] : this.headImg;
+					this.avatar    = user['avatar'] ? user['avatar'] : this.avatar;
+					this.appAmount = user['amount'] ? user['amount'] : this.amount;
+					console.log(this.nickname)
+				} else {
+					uni.reLaunch({
+						url:'/pages/account/login'
+					})
+				}
+				
+				this.$utils.request('/api/transaction/consumptions', {}).then((res) => {
+					console.log(res);
+					if (res.code == 200) {
+						this.logs           = res.data.data;
+						this.totalAppAmount = res.data.totalAppAmount;
+					} else if (res.code == 400) {
+						uni.showToast({
+							title:res.message,
+							icon: "none",
+							mask: true,
+							duration: 2000
+						});
+						// uni.reLaunch({
+						// 	url:'/pages/account/login'
+						// });
+					} 
+				}).catch(function(error){
+					console.log(error.message);
+				});
+			},
 			backPage(){
-				uni.navigateBack();
+				//uni.navigateBack();
+				uni.switchTab({
+					url:'/pages/settings/settings'
+				})
 			}
 		}
 	}
@@ -246,7 +239,7 @@ page{
 }
 .expand-amount{
 	font-size: 32rpx;
-	color: #991D0D;
+	color: #006400;
 	margin-top: 26rpx;
 }
 .expand-status{
@@ -259,28 +252,4 @@ page{
 	height: 1rpx;
 	background: #F1F4F9;
 }
-/* 
-<view class="expand-list-box">
-			<view class="expand-item">
-				<image src="/static/icon-expand.png" mode="aspectFit" class="icon-expand"></image>
-				<view class="expand-center">
-					<view class="expand-name">
-						消费名称消费名称
-					</view>
-					<view class="expand-time">
-						2023-11-26 12:57
-					</view>
-				</view>
-				<view class="expand-right">
-					<view class="expand-amount">
-						-1000
-					</view>
-					<view class="expand-status">
-						消费成功
-					</view>
-				</view>
-			</view>
-		</view>
- 
- */
 </style>

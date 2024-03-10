@@ -59,14 +59,11 @@ function generateRandomString(length) {
   return result;
 }
 
-function authorization()
+const authorization = function ()
 {
-	try {
-		const userInfo = uni.getStorageSync('user_info');
-	} catch (e) {
-		console.log(e.message);
-	}
-	return userInfo;
+	 const info = uni.getStorageSync('user_info');
+	 console.log(info);
+	 return info ? info.token : '';
 }
 
 function validateEmail(email) {

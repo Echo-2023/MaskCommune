@@ -6,7 +6,7 @@
 			<view class="user-avatar-box">
 				<image :src="girl.avatar" mode="aspectFill" class="user-avatar"></image>
 			</view>
-			<view class="wechat-box" @click="contactInfo(girl.id)">
+			<view class="wechat-box" @click="contactInfo(girl.item_id)">
 				<image src="/static/icon-wechat.png" mode="aspectFit" class="icon-wechat"></image>
 				查看微信
 			</view>
@@ -117,7 +117,10 @@
 		},
 		methods: {
 			back(){
-				uni.navigateBack();
+				//uni.navigateBack();
+				uni.switchTab({
+					url:'/pages/index/index'
+				})
 			},
 			changeTab(tab){
 				if(tab==this.tab){
@@ -148,22 +151,108 @@
 					urls:images
 				})
 			},
+			cif(itemId){
+				uni.showLoading();
+				this.$utils.request(
+					'/api/content/cif', 
+					{girl_id:itemId}
+				).then((res) => {
+					console.log(res);
+					if (res.code == 200) {
+						let info = res.data;
+						uni.hideLoading();
+						uni.showModal({
+							title: '联系方式',
+							content: '微信:' + info.wechat,
+							showCancel: false,
+							success: function(res) {
+								
+							}
+						});
+					} else if (res.code == 400) {
+						let msg = res.message;
+						if (res.msg == 'Unauthenticated.') {
+							msg = '您尚未登陆，请登陆之后再查看';
+						}
+						uni.showToast({
+							title: msg,
+							icon: "none",
+							mask: true,
+							duration: 2000
+						});
+						if (res.msg == 'Unauthenticated.') {
+							uni.setStorage({
+								key: 'login_before_uri',
+								data: '/pages/index/userDetail?girl='+this.girlId,
+								success: function () {
+									console.log('登陆前url保存成功');
+								}
+							});
+							uni.navigateTo({
+								url:'/pages/account/login'
+							})
+						}
+					} else {
+						uni.hideLoading();
+					}
+				});
+			},
 			contactInfo(girlId){
 				let token = '';
-				if (token = this.$utils.authorization()){
-					console.log('已登录');
+				if (this.$utils.authorization()){
+					let user = this.$utils.userInfo();
+					let msg  = "";
+					if (user.isVIP) {
+						this.cif(girlId);
+					} else {
+						uni.showModal({
+							title: '提示信息',
+							content: '您不是VIP会员，查看女神联系方式将会从您的余额中进行扣除费用',
+							success: function(res) {
+								if (res.confirm) {
+									if (user.amount) {
+										this.cif(girlId);
+									} else {
+										uni.showModal({
+											title: '提示信息',
+											content: '您的余额为0，请先充值',
+											success: function(res) {
+												if (res.confirm) {
+													uni.navigateTo({
+														url: '/pages/vip/charge-option'
+													})
+												}
+											}
+										});
+									}
+								}
+							}
+						});
+					}
+					console.log(user);
+					
 				} else {
 					console.log('需要登陆');
 					uni.setStorage({
 						key: 'login_before_uri',
-						data: '/pages/index/userDetail?girl='+girlId,
+						data: '/pages/index/userDetail?girl='+this.girlId,
 						success: function () {
 							console.log('登陆前url保存成功');
 						}
 					});
-					uni.navigateTo({
-						url:'/pages/account/login'
+					uni.showModal({
+						title: '消息提醒',
+						content: '查看联系方式需要登陆，请确认是否登陆',
+						confirmText: '登陆',
+						success: function(res) {
+							if (res.confirm) {
+								uni.navigateTo({
+									url:'/pages/account/login'
+								});
+							}
+						}
 					})
+					
 				}
 				console.log(girlId)
 			},
@@ -181,6 +270,7 @@
 		onLoad(option) {
 			console.log(option, option.girl);
 			this.girlId = option.girl;
+			//uni.clearStorageSync('login_before_uri');
 			this.userInfo();
 		},
 		onReachBottom() {
