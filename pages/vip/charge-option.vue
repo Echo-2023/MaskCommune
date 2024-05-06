@@ -97,11 +97,13 @@
 			}
 		},
 		mounted(){
-			console.log('sss');
-			this.basicInfo = this.$utils.basicInfo();
-			this.unit     = this.basicInfo.currency_unit;
-			this.currency = this.basicInfo.currency;
-			this.rate     = this.basicInfo.usdt_rate;
+			this.$utils.basicInfo().then((res) => {
+				this.basicInfo = res;
+				this.unit      = this.basicInfo.currency_unit;
+				this.currency  = this.basicInfo.currency;
+				this.rate      = this.basicInfo.usdt_rate;
+			});
+			
 			this.initPage();
 			this.cashInOption();
 		},

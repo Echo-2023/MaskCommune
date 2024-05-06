@@ -112,11 +112,13 @@ const request = function(uri, param)
 	});
 }
 
-function basicInfo(){
+async function basicInfo(){
 	let info = uni.getStorageSync('basic_info');
+	console.log('basic_info:', info);
 	if (!info) {
-		this.request('/api/app/basic', {}).then((res) => {
+		await this.request('/api/app/basic', {}).then((res) => {
 			if (res.code == 200) {
+				info = res.data;
 				uni.setStorageSync('basic_info', res.data);
 			} 
 		}).catch(function(error){

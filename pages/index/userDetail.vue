@@ -165,9 +165,7 @@
 							title: '联系方式',
 							content: '微信:' + info.wechat,
 							showCancel: false,
-							success: function(res) {
-								
-							}
+							success: function(res) {}
 						});
 					} else if (res.code == 400) {
 						let msg = res.message;
@@ -194,6 +192,19 @@
 						}
 					} else {
 						uni.hideLoading();
+						console.log(res);
+						uni.showModal({
+							title: '提示信息',
+							content: res.message,
+							confirmText: "充值",
+							success: function(res) {
+								if (res.confirm) {
+									uni.navigateTo({
+										url: '/pages/vip/charge-option'
+									})
+								}
+							}
+						});
 					}
 				});
 			},

@@ -94,10 +94,10 @@
 			<view class="service-center">
 				<image src="/static/service-bg.png" mode="aspectFit" class="service-bg"></image>
 				<view class="service-phone">
-					Telegram:{{telegram}}
+					Telegram: {{telegram}}
 				</view>
 				<view class="service-phone">
-					E-Mail:{{email}}
+					E-Mail: {{email}}
 				</view>
 				<!-- <view class="service-call" @click="call()">
 					拨打电话
@@ -129,10 +129,12 @@
 		},
 		methods: {
 			initPage(){
-				let basicInfo = this.$utils.basicInfo();
-				this.telegram = basicInfo.telegram;
-				this.email    = basicInfo.email;
-				this.app_name = basicInfo.app_name;
+				this.$utils.basicInfo().then((res)=> {
+					this.telegram = res.telegram;
+					this.email    = res.email;
+					this.app_name = res.app_name;
+				});
+				
 				let user      = this.$utils.userInfo();
 				if (user){
 					this.nickname = user['userName'] ? user['userName'] : user['name'];
@@ -148,8 +150,7 @@
 					})
 				}
 				
-				let beforeUri = uni.getStorage('login_before_uri');
-				console.log(beforeUri);
+				let beforeUri = uni.getStorageSync('login_before_uri');
 				if (beforeUri) {
 					uni.reLaunch({
 						url:beforeUri

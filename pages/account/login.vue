@@ -108,7 +108,7 @@
 						if (res.code == 200) {
 							uni.setStorageSync('user_info', res.data);
 							let beforeUri = '/pages/settings/settings';
-							uni.switchTab({
+							uni.reLaunch({
 								url: beforeUri
 							});
 						} else {
