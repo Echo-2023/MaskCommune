@@ -69,6 +69,11 @@
 			}
 		},
 		mounted(){
+			if (!this.$utils.authorization()) {
+				uni.reLaunch({
+					url:'/pages/account/login'
+				});
+			}
 			this.initPage();
 		},
 		methods: {
@@ -87,10 +92,6 @@
 					this.avatar    = user['avatar'] ? user['avatar'] : this.avatar;
 					this.appAmount = user['amount'] ? user['amount'] : this.amount;
 					console.log(this.nickname)
-				} else {
-					uni.reLaunch({
-						url:'/pages/account/login'
-					})
 				}
 				
 				this.$utils.request('/api/transaction/consumptions', {}).then((res) => {

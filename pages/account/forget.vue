@@ -14,21 +14,21 @@
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-email.png" mode="aspectFit" class="login-icon"></image>
-			<input type="text" class="login-name" placeholder="请输入登录邮箱" placeholder-class="login-name-placeholder"/>
+			<input type="text" v-model="email" class="login-name" placeholder="请输入登录邮箱" placeholder-class="login-name-placeholder"/>
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-code.png" mode="aspectFit" class="login-icon"></image>
-			<input type="text" class="login-name" placeholder="请输入验证码" placeholder-class="login-name-placeholder"/>
+			<input type="text" v-model="verifyCode" class="login-name" placeholder="请输入验证码" placeholder-class="login-name-placeholder"/>
 			<text class="send-code" :class="count == 60 ?'':'send-disabled'" @click="sendCode()">{{sendText}}</text>
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input :type="isPassword?'password':'text'" class="login-name" placeholder="请输入登录密码" placeholder-class="login-name-placeholder"/>
+			<input :type="isPassword?'password':'text'" :value="pass" @input="pass = $event.target.value" class="login-name" placeholder="请输入登录密码" placeholder-class="login-name-placeholder"/>
 			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="passwordClick()"></image>
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
-			<input :type="isPassword2?'password':'text'" class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
+			<input :type="isPassword2?'password':'text'" :value="pass2" @input="pass2 = $event.target.value" class="login-name" placeholder="请确认登录密码" placeholder-class="login-name-placeholder"/>
 			<image :src="isPassword2?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="password2Click()"></image>
 		</view>
 		<view class="login-tip-box">
@@ -39,7 +39,7 @@
 				忘记密码？
 			</view> -->
 		</view>
-		<view class="login-btn" @click="login()">
+		<view class="login-btn" @click="forget()">
 			确认提交
 		</view>
 		<!-- <view class="login-agree-box">
@@ -55,15 +55,26 @@
 	export default {
 		data() {
 			return {
-				checked:false,
-				count:60,
+				checked:true,
+				count:120,
 				isPassword:true,
-				isPassword2:true
+				isPassword2:true,
+				email:'',
+				verifyCode:'',
+				pass:'',
+				pass2:'',
+			}
+		},
+		mounted() {
+			if (this.$utils.authorization()) {
+				uni.reLaunch({
+					url:'/pages/settings/settings'
+				});
 			}
 		},
 		computed:{
 			sendText(){
-				return this.count == 60 ? '获取验证码':(this.count+'秒后重新发送')
+				return this.count == 120 ? '获取验证码':(this.count+'秒后重新发送')
 			}
 		},
 		methods: {
@@ -75,33 +86,139 @@
 					url:'/pages/account/login'
 				})
 			},
-			regist(){
-				uni.navigateTo({
-					url:'/pages/account/regist'
-				})
-			},
 			forget(){
-				uni.navigateTo({
-					url:'/pages/account/forget'
+				if (!this.email){
+					return uni.showToast({
+						title:"邮箱不能为空",
+						icon: "error",
+						duration:2000
+					});
+				} else {
+					console.log(!this.$utils.validateEmail(this.email));
+					if (!this.$utils.validateEmail(this.email)) {
+						return uni.showToast({
+							title:"邮箱格式错误",
+							icon: "error",
+							duration:2000
+						});
+					}
+				}
+				
+				if (!this.verifyCode) {
+					return uni.showToast({
+						title:"验证码不能为空，请到输入的邮箱中查看",
+						icon: "error",
+						duration:2000
+					});
+				}
+				
+				if (!this.pass || !this.pass2) {
+					return uni.showToast({
+						title:"登录密码不能空",
+						icon: "error",
+						duration:2000
+					});
+				} else if (this.pass != this.pass2) {
+					return uni.showToast({
+						title:"两次输入的密码需要保持一致",
+						icon: "error",
+						duration:2000
+					});
+				} else if(this.pass.length < 8) {
+					return uni.showToast({
+						title:"密码长度不能少于8位",
+						icon: "error",
+						duration:2000
+					});
+				}
+				
+				uni.showLoading({
+					mask:true
 				})
+				let uri = '/api/forget-pass';
+				let param = {
+					"email": this.email,
+					"verifyCode": this.verifyCode,
+					"password": this.pass,
+					"password_confirmation": this.pass2
+				};
+				let rs = this.$utils.request(uri, param).then((res) => {
+					console.log(res);
+					uni.hideLoading();
+					if (res.code == 200) {
+						uni.showToast({
+							title: res.message,
+							icon: "error",
+							duration:2000
+						}).then((res) => {
+							setTimeout(() => {
+								uni.reLaunch({
+									url:'/pages/account/login'
+								});
+							}, 2000);
+						})
+						
+					} else {
+						uni.showToast({
+							title: res.message,
+							icon: "error",
+							duration:2000
+						});
+					}
+				}).catch(function(error){
+					console.log(error);
+				});
 			},
 			sendCode(){
-				if(this.count != 60){
+				if (!this.email){
+					return uni.showToast({
+						title:"邮箱不能为空",
+						icon: "error",
+						duration:2000
+					});
+				} else {
+					console.log(!this.$utils.validateEmail(this.email));
+					if (!this.$utils.validateEmail(this.email)) {
+						return uni.showToast({
+							title:"邮箱格式错误",
+							icon: "error",
+							duration:2000
+						});
+					}
+				}
+				if(this.count != 120){
 					return;
 				}
 				uni.showLoading({
 					mask:true
 				})
-				var index = setInterval(()=>{
-					if(this.count == 60){
-						uni.hideLoading()
+				let uri = '/api/verification/code';
+				let param = {
+					"email": this.email
+				};
+				let rs = this.$utils.request(uri, param).then((res) => {
+					console.log(res);
+					if (res.code != 200) {
+						uni.showToast({
+							title: res.message,
+							icon: "none",
+							duration:2000
+						})
+					} else {
+						let index = setInterval(()=>{
+							if(this.count == 120){
+								uni.hideLoading()
+							}
+							this.count--;
+							if(this.count<1){
+								this.count = 120;
+								clearInterval(index)
+							}
+						},1000);
 					}
-					this.count--;
-					if(this.count<1){
-						this.count = 60;
-						clearInterval(index)
-					}
-				},1000)
+				}).catch(function(error){
+					console.log(error);
+				});
 			},
 			passwordClick(){
 				this.isPassword = !this.isPassword;

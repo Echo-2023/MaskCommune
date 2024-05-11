@@ -20,7 +20,7 @@
 				</view>
 			</view>
 			<view class="recharge-countdown-box" v-if="!showCountdown">
-				超时未支付，已取消
+				{{tips}}
 			</view>
 			<view class="recharge-amount">
 				{{amount}}
@@ -63,10 +63,17 @@
 				'minutes': 15,
 				'seconds':0,
 				'showCountdown': true,
-				'btnText': '确认已付款'
+				'btnText': '确认已付款',
+				'tips': '超时未支付，已取消',
+				'status': 2
 			}
 		},
 		mounted(){
+			if (!this.$utils.authorization()) {
+				uni.reLaunch({
+					url:'/pages/account/login'
+				});
+			}
 			this.initData();
 			this.tradeInfo();
 			this.countdown();
@@ -92,19 +99,21 @@
 							}
 							uni.showToast({
 								title: msg,
-								icon: "none",
-								duration:2000,
+								icon: "success",
+								duration:3000,
 								success: (res) => {
-									uni.reLaunch({
-										url:'/pages/settings/settings'
-									});
+									setTimeout(() => {
+										uni.reLaunch({
+											url:'/pages/settings/settings'
+										});
+									}, 3000);	
 								}
 							});
 							console.log(data)
 						} else {
 							uni.showToast({
 								title: res.message,
-								icon: "none",
+								icon: "error",
 								duration:3000
 							});
 						}
@@ -132,25 +141,18 @@
 							this.userName = user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
 							console.log(this.nickname)
-						} else {
-							uni.reLaunch({
-								url:'/pages/account/login'
-							})
 						}
 					},
-					fail: (res) => {
-						uni.reLaunch({
-							url:'/pages/account/login'
-						})
-					}
+					fail: (res) => {}
 				});
-				this.basicInfo    = this.$utils.basicInfo();
-				this.unit         = this.basicInfo.currency_unit;
-				this.currency     = this.basicInfo.currency;
-				this.rate         = this.basicInfo.usdt_rate;
-				this.qr_code      = this.basicInfo.qr_code,
-				this.receive_addr = this.basicInfo.receive_addr;
-				this.procotol     = this.basicInfo.protocol;
+				this.$utils.basicInfo().then((res) => {
+					this.unit         = res.currency_unit;
+					this.currency     = res.currency;
+					this.rate         = res.usdt_rate;
+					this.qr_code      = res.qr_code,
+					this.receive_addr = res.receive_addr;
+					this.procotol     = res.protocol;
+				});
 			},
 			tradeInfo() {
 				const {trade_num} = this.$route.query;
@@ -166,9 +168,15 @@
 						this.amount  = data.amount;
 						this.minutes = data.minutes;
 						this.seconds = data.seconds;
+						this.status  = data.status;
 						if (this.minutes == 0 && this.seconds == 0) {
 							this.showCountdown = false;
 							this.btnText = "重新支付"
+						}
+						if (this.status == 4) {
+							this.tips = "支付成功";
+							this.showCountdown = false;
+							this.btnText = "发起新的支付"
 						}
 						console.log(this.amount, data)
 					} else {
@@ -334,7 +342,7 @@
 	font-weight: bold;
 	color: #FFFFFF;
 	text-shadow: 0rpx 0rpx 24rpx rgba(179,0,10,0.7);
-	margin-top: 26rpx;
+	/*margin-top: 26rpx;*/
 }
 .recharge-price{
 	font-size: 30rpx;

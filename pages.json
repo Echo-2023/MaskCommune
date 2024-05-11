@@ -61,6 +61,14 @@
 			}
 		},
 		{
+			"path" : "pages/settings/repass",
+			"style" : 
+			{
+				"navigationStyle": "custom",
+				"enablePullDownRefresh" : false
+			}
+		},
+		{
 			"path" : "pages/account/login",
 			"style" : 
 			{

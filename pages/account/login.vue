@@ -48,16 +48,12 @@
 			}
 		},
 		mounted(){
-			uni.getStorage({
-				key: 'user_info',
-				success: function (res) {
-					if (res.data){
-						uni.reLaunch({
-							url:'/pages/settings/settings'
-						})
-					}
-				}
-			});
+			if (this.$utils.authorization()) {
+				uni.reLaunch({
+					url:'/pages/settings/settings'
+				});
+			}
+			
 		},
 		methods: {
 			back(){

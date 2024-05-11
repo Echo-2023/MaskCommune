@@ -114,7 +114,6 @@ const request = function(uri, param)
 
 async function basicInfo(){
 	let info = uni.getStorageSync('basic_info');
-	console.log('basic_info:', info);
 	if (!info) {
 		await this.request('/api/app/basic', {}).then((res) => {
 			if (res.code == 200) {

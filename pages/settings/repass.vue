@@ -2,7 +2,7 @@
 	<view class="content">
 		<image :src="headImg" mode="aspectFill" class="setting-bg"></image>
 		<view class="user-box">
-			<image :src="avatar" mode="aspectFill" class="user-avatar"></image>
+			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="homepage()"></image>
 			<view class="user-right">
 				<view class="user-name">
 					{{nickname}}
@@ -36,75 +36,34 @@
 		<view class="account-box">
 			<view class="account-top">
 				<view class="account-top-title">
-					账户充值
-				</view>
-				<view class="account-balance-text">
-					余额:<text class="account-balance">{{amount}}</text>钻
-				</view>
-			</view>
-			<view class="account-bottom">
-				<view class="icon-item" @click="cashInPage()">
-					<image src="/static/icon-czlb.png" mode="aspectFit" class="icon-czlb"></image>
-					充值列表
-				</view>
-				<view class="icon-item" @click="consumptionPage()">
-					<image src="/static/icon-xfjl.png" mode="aspectFit" class="icon-xfjl"></image>
-					消费记录
-				</view>
-				<view class="icon-item" @click="rechargePage()">
-					<image src="/static/icon-zhcz.png" mode="aspectFit" class="icon-zhcz"></image>
-					账户充值
-				</view>
-			</view>
-		</view>
-		<view class="list-box">
-			<view class="list-item">
-				<image src="/static/icon-xgmm.png" mode="aspectFit" class="icon-xgmm"></image>
-				<view class="list-item-text" @click="resetPass()">
 					修改密码
 				</view>
-				<image src="/static/icon-arrow-right.png" mode="aspectFit" class="icon-arrow-right"></image>
 			</view>
-			<view class="list-item" @click="serviceClick()">
-				<image src="/static/icon-ptkf.png" mode="aspectFit" class="icon-ptkf"></image>
-				<view class="list-item-text">
-					平台客服
+			<view class="list-box">
+				<view class="login-item">
+					<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
+					<input :type="isOriginPass?'password':'text'" class="login-name" placeholder="请输入当前密码" :value="originPass" @input="originPass = $event.target.value" placeholder-class="login-name-placeholder"/>
+					<image :src="isOriginPass?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="originPassClick()"></image>
 				</view>
-				<image src="/static/icon-arrow-right.png" mode="aspectFit" class="icon-arrow-right"></image>
+				
+				<view class="login-item">
+					<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
+					<input :type="isNewPass?'password':'text'" class="login-name" placeholder="请输入新密码" :value="newPass" @input="newPass = $event.target.value" placeholder-class="login-name-placeholder"/>
+					<image :src="isNewPass?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="newPassClick()"></image>
+				</view>
+				
+				<view class="login-item">
+					<image src="/static/icon-password.png" mode="aspectFit" class="login-icon"></image>
+					<input :type="isNewRePass?'password':'text'" class="login-name" placeholder="请重复输入新密码" :value="newRePass" @input="newRePass = $event.target.value" placeholder-class="login-name-placeholder"/>
+					<image :src="isNewRePass?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="newRePassClick()"></image>
+				</view>
 			</view>
-			<view class="list-item" @click="shareClick()">
-				<image src="/static/icon-fxwz.png" mode="aspectFit" class="icon-fxwz"></image>
-				<view class="list-item-text">
-					分享网址
-				</view>
-				<image src="/static/icon-copy.png" mode="aspectFit" class="icon-copy"></image>
-			</view>
-			<view class="list-item">
-				<image src="/static/icon-gywm.png" mode="aspectFit" class="icon-gywm"></image>
-				<view class="list-item-text" @click="aboutUS()">
-					关于我们
-				</view>
-				<image src="/static/icon-arrow-right.png" mode="aspectFit" class="icon-arrow-right"></image>
-			</view>
-		</view>
-		<view class="logout" @click="logout()">
-			退出登录
-		</view>
-		<view class="service-box" v-if="serviceShow">
-			<view class="service-center">
-				<image src="/static/service-bg.png" mode="aspectFit" class="service-bg"></image>
-				<view class="service-phone">
-					Telegram: {{telegram}}
-				</view>
-				<view class="service-phone">
-					E-Mail: {{email}}
-				</view>
-				<!-- <view class="service-call" @click="call()">
-					拨打电话
-				</view> -->
-				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="serviceClick()"></image>
+			<view class="logout" @click="resetPass()">
+				提交
 			</view>
 		</view>
+		
+		
 	</view>
 </template>
 
@@ -121,16 +80,22 @@
 				avatar: "/static/data/default_avatar.jpg",
 				telegram: "",
 				email: "",
-				app_name: ""
+				app_name: "",
+				isOriginPass:true,
+				isNewPass:true,
+				isNewRePass:true,
+				newPass:'',
+				newRePass:'',
+				originPass:''
 			}
 		},
 		mounted(){
-			if (!this.$utils.authorization()) {
-				uni.reLaunch({
-					url:'/pages/account/login'
-				});
-			}
 			this.initPage();
+		},
+		computed:{
+			inputPass() {
+			  return this.isPassword ? 'password' : 'text';
+			}
 		},
 		methods: {
 			initPage(){
@@ -141,14 +106,17 @@
 				});
 				
 				let user      = this.$utils.userInfo();
-				if (user && Object.keys(user).length){
+				if (user){
 					this.nickname = user['userName'] ? user['userName'] : user['name'];
 					this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
 					this.isVIP    = user['isVIP'] == '1' ? true : false;
 					this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 					this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
 					this.amount   = user['amount'] ? user['amount'] : this.amount;
-					console.log('init page', this.nickname)
+				} else {
+					uni.reLaunch({
+						url:'/pages/account/login'
+					})
 				}
 				
 				let beforeUri = uni.getStorageSync('login_before_uri');
@@ -159,63 +127,88 @@
 				}
 				
 			},
-			vipPage(){
-				uni.switchTab({
-					url:'/pages/vip/vip'
+			originPassClick(){
+				this.isOriginPass = !this.isOriginPass;
+			},
+			newPassClick(){
+				this.isNewPass = !this.isNewPass;
+			},
+			newRePassClick(){
+				this.isNewRePass = !this.isNewRePass;
+			},
+			//修改密码
+			resetPass(){
+				if (!this.originPass) {
+					return uni.showToast({
+						title:"当前密码不能空",
+						icon: "none",
+						duration:2000
+					});
+				}
+				
+				if (!this.newPass || !this.newRePass) {
+					return uni.showToast({
+						title:"新密码不能空",
+						icon: "none",
+						duration:2000
+					});
+				} else if (this.newPass != this.newRePass) {
+					return uni.showToast({
+						title:"两次输入的新密码需要保持一致",
+						icon: "none",
+						duration:2000
+					});
+				} else if(this.newPass.length < 8) {
+					return uni.showToast({
+						title:"密码长度不能少于8位",
+						icon: "none",
+						duration:2000
+					});
+				}
+				
+				uni.showLoading({
+					mask:true
 				})
-			},
-			rechargePage(){
-				uni.navigateTo({
-					url:'/pages/vip/charge-option'
-				})
-			},
-			serviceClick(){
-				this.serviceShow = !this.serviceShow;
-			},
-			call(){
-				uni.makePhoneCall({
-					phoneNumber: '18569352076' //仅为示例
+				let uri = '/api/member/reset-pass';
+				let param = {
+					"email": this.email,
+					"originPass": this.originPass,
+					"password": this.newPass,
+					"password_confirmation": this.newRePass
+				};
+				let rs = this.$utils.request(uri, param).then((res) => {
+					console.log(res);
+					uni.hideLoading();
+					let iconType = 'error';
+					if (res.code == 200) {
+						iconType = 'success';
+					} 
+					console.log(iconType);
+					uni.showToast({
+						title: res.message,
+						icon: iconType,
+						duration:3000,
+					}).then((res) => {
+						console.log('then:'+iconType);
+						if (iconType == 'success'){
+							setTimeout(() => {
+								uni.reLaunch({
+									url: '/pages/settings/settings'
+								});
+							}, 3000); // 等待 3000 毫秒（duration）后执行回调函数
+						}
+					})
+					
+					
+				}).catch(function(error){
+					console.log(error);
 				});
 			},
-			shareClick(){
-				uni.setClipboardData({
-					data: window.location.href,
-					success: ()=> {
-						uni.showToast({
-							title:'网址已复制，请发送给您的朋友',
-							mask:true,
-							icon:'none'
-						})
-					}
-				});
-			},
-			resetPass() {
-				uni.navigateTo({
-					url:'/pages/settings/repass'
-				});
-			},
-			aboutUS() {
-				uni.showModal({
-					title: '温馨提醒',
-					content: '关于我们的信息，正在赶来的路上，请耐心等候'
-				})
-			},
-			consumptionPage(){
-				uni.navigateTo({
-					url:'/pages/settings/consumption'
-				})
-			},
-			cashInPage(){
-				uni.navigateTo({
-					url:'/pages/settings/cash-in'
-				})
-			},
-			logout(){
-				uni.clearStorageSync();
+			homepage() {
 				uni.reLaunch({
-					url:'/pages/account/login'
-				})
-			}
+					url:'/pages/settings/settings'
+				});
+			},
 		}
 	}
 </script>
@@ -351,29 +344,7 @@ page{
 	height: 92rpx;
 	line-height: 92rpx;
 }
-.account-balance-text{
-	flex: 1;
-	margin-left: 27rpx;
-	font-size: 28rpx;
-	color: #989DA6;
-	display: flex;
-	flex-flow: row nowrap;
-	align-items: baseline;
-}
-.account-balance{
-	font-size: 30rpx;
-	color: #991D0D;
-	margin-left: 11rpx;
-	margin-right: 6rpx;
-}
-.account-bottom{
-	flex: 1;
-	width: 710rpx;
-	display: flex;
-	flex-flow: row nowrap;
-	align-items: center;
-	justify-content: space-between;
-}
+
 .icon-item{
 	width: 155rpx;
 	display: flex;
@@ -470,55 +441,7 @@ page{
 	background-color: #fff;
 	
 }
-.service-box{
-	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	background-color: rgba(0,0,0,0.8);
-	display: flex;
-	flex-flow: column nowrap;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-}
-.service-center{
-	width: 640rpx;
-	height: 640rpx;
-	position: relative;
-	display: flex;
-	flex-flow: column nowrap;
-	align-items: center;
-	justify-content: flex-end;
-}
-.service-bg{
-	position: absolute;
-	left: 0;
-	bottom: 0;
-	width: 640rpx;
-	height: 691rpx;
-	z-index: 1;
-}
-.service-phone{
-	font-size: 40rpx;
-	font-weight: bold;
-	color: #333333;
-	z-index: 2;
-	margin-bottom: 30rpx;
-}
-.service-call{
-	width: 570rpx;
-	height: 88rpx;
-	background: #981D0D;
-	border-radius: 44rpx;
-	line-height: 88rpx;
-	text-align: center;
-	font-size: 32rpx;
-	color: #ffffff;
-	z-index: 2;
-	margin-bottom: 41rpx;
-}
+
 .icon-close{
 	position: absolute;
 	bottom: -130rpx;
@@ -529,6 +452,43 @@ page{
 	z-index: 2;
 }
 
+.login-item{
+	width: 710rpx;
+	height: 80rpx;
+	margin-bottom: 36rpx;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	border-bottom: 2rpx solid #EFF0F2;
+}
+.login-icon{
+	width: 30rpx;
+	height: 34rpx;
+	margin-left: 22rpx;
+	margin-right: 22rpx;
+}
+.login-name{
+	font-size: 28rpx;
+	color: #333333;
+	flex: 1;
+}
+.login-name-placeholder{
+	font-size: 28rpx;
+	color: #989DA6;
+}
+.login-tip-box{
+	width: 710rpx;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	font-size: 26rpx;
+	color: #989DA6;
+}
+.icon-eye{
+	width: 34rpx;
+	height: 26rpx;
+	margin-right: 22rpx;
+}
 /* 
 <view class="service-box">
 	<view class="service-center">

@@ -75,7 +75,11 @@
 			}
 		},
 		mounted() {
-			
+			if (this.$utils.authorization()) {
+				uni.reLaunch({
+					url:'/pages/settings/settings'
+				});
+			}
 			this.$nextTick(() => {
 				this.$forceUpdate();
 			})
@@ -98,12 +102,10 @@
 				})
 			},
 			regist(){
-				console.log(this.email);
-				console.log(this.pass)
 				if (!this.email){
 					return uni.showToast({
 						title:"邮箱不能为空",
-						icon: "none",
+						icon: "error",
 						duration:2000
 					});
 				} else {
@@ -111,7 +113,7 @@
 					if (!this.$utils.validateEmail(this.email)) {
 						return uni.showToast({
 							title:"邮箱格式错误",
-							icon: "none",
+							icon: "error",
 							duration:2000
 						});
 					}
@@ -120,7 +122,7 @@
 				if (!this.verifyCode) {
 					return uni.showToast({
 						title:"验证码不能为空，请到输入的邮箱中查看",
-						icon: "none",
+						icon: "error",
 						duration:2000
 					});
 				}
@@ -128,19 +130,19 @@
 				if (!this.pass || !this.pass2) {
 					return uni.showToast({
 						title:"登录密码不能空",
-						icon: "none",
+						icon: "error",
 						duration:2000
 					});
 				} else if (this.pass != this.pass2) {
 					return uni.showToast({
 						title:"两次输入的密码需要保持一致",
-						icon: "none",
+						icon: "error",
 						duration:2000
 					});
 				} else if(this.pass.length < 8) {
 					return uni.showToast({
 						title:"密码长度不能少于8位",
-						icon: "none",
+						icon: "error",
 						duration:2000
 					});
 				}
@@ -148,7 +150,7 @@
 				if (!this.checked) {
 					return uni.showToast({
 						title:"请勾选服务与隐私条款",
-						icon: "none",
+						icon: "error",
 						duration:2000
 					});
 				}
@@ -199,10 +201,9 @@
 					"email": this.email
 				};
 				let rs = this.$utils.request(uri, param).then((res) => {
-					console.log(res);
 					if (res.code != 200) {
 						uni.showToast({
-							title: res.msg,
+							title: res.message,
 							icon: "none",
 							duration:2000
 						})
