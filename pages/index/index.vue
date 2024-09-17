@@ -96,6 +96,11 @@
 		mounted(){
 			//this.getRegions(this.code)
 			this.getUsers(this.page, this.pageSize, this.selectTab, this.selectCity);
+			this.$utils.basicInfo().then((res) => {
+				uni.setNavigationBarTitle({
+					title: res.app_name
+				});
+			});
 			
 		},
 		methods: {

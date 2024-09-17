@@ -75,14 +75,21 @@
 				});
 			}
 			this.initPage();
+			this.$utils.basicInfo().then((res) => {
+				uni.setNavigationBarTitle({
+					title: '消费记录-' + res.app_name
+				});
+			});
+			this.$utils.basicInfo().then((res) => {
+				this.telegram = res.telegram;
+				this.email    = res.email;
+				this.unit     = res.currency_unit;
+				this.app_name = res.app_name;
+			})
+			
 		},
 		methods: {
 			initPage(){
-				let basicInfo = this.$utils.basicInfo();
-				this.telegram = basicInfo.telegram;
-				this.email    = basicInfo.email;
-				this.unit     = basicInfo.currency_unit;
-				this.app_name = basicInfo.app_name;
 				let user      = this.$utils.userInfo();
 				if (user){
 					this.nickname  = user['nickname'] ? user['nickname'] : user['userName'];

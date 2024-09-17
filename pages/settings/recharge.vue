@@ -126,7 +126,7 @@
 					});
 				} else {
 					uni.reLaunch({
-						url:'/pages/vip/charge-option'
+						url:'/pages/ucenter/charge-option'
 					});
 				}
 			},

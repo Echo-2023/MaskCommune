@@ -1,8 +1,12 @@
 <template>
 	<view class="content">
 		<image :src="headImg" mode="aspectFill" class="vip-bg"></image>
+		<view class="header">
+			<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
+			账户充值
+		</view>
 		<view class="user-box">
-			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="homepage()"></image>
+			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="ucenter()"></image>
 			<view class="user-right">
 				<view class="user-name">
 					{{nickname}}
@@ -14,13 +18,13 @@
 		</view>
 		<view class="recharge-box">
 			<view class="recharge-title">
-				{{currency}}充值范围
+				推荐{{currency}}充值金额
 			</view>
 			<view class="recharge-items">
 				<view class="recharge-item" :key="index" v-for="(option,index) in options" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
 					<view class="recharge-item-amount">
 						<view class="recharge-item-num">
-							{{option.from}} - {{option.to}}
+							{{option.amount}}
 						</view>
 						{{unit}}
 					</view>
@@ -52,24 +56,6 @@
 				立即支付
 			</view>
 		</view>
-		<view class="recharge-success-box" v-if="showSuccess">
-			<view class="recharge-success">
-				<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
-				<view class="recharge-type">
-					半年会员
-				</view>
-				<view class="recharge-tip">
-					恭喜您升级为
-				</view>
-				<view class="recharge-type-title">
-					半年会员
-				</view>
-				<view class="recharge-success-btn" @click="indexPage()">
-					返回首页
-				</view>
-				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="clickRecharge()"></image>
-			</view>
-		</view>
 	</view>
 </template>
 
@@ -97,11 +83,19 @@
 			}
 		},
 		mounted(){
+			
 			this.$utils.basicInfo().then((res) => {
 				this.basicInfo = res;
 				this.unit      = this.basicInfo.currency_unit;
 				this.currency  = this.basicInfo.currency;
 				this.rate      = this.basicInfo.usdt_rate;
+				
+				uni.setNavigationBarTitle({
+					title: '账户充值' +"-"+ this.basicInfo.app_name
+				});
+				//uni.showTabBar();
+				//uni.showTabBar();
+
 			});
 			
 			this.initPage();
@@ -120,19 +114,20 @@
 			getAmount() {
 				if (this.options.length) {
 					let option     = this.options[this.selectIndex];
-					let from       = option.from;
-					let to         = option.to;
+					let amount     = option.amount;
 					this.option_id = option.id;
-					let random     = Math.floor(Math.random() * (to - from )) + from;
-					this.usdt      = Math.round( random / this.rate);
+					this.usdt      = Math.round( amount / this.rate);
 					this.diamond   = this.usdt * this.rate;
 				}
 				return this.usdt;
 			},
-			homepage() {
-				uni.reLaunch({
+			ucenter(){
+				uni.switchTab({
 					url:'/pages/settings/settings'
 				});
+			},
+			back(){
+				uni.navigateBack();
 			},
 			clickRecharge(){
 				if (this.price < this.amount) {
@@ -249,7 +244,7 @@ page{
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	margin-top: 50rpx;
+	/* margin-top: 50rpx; */
 	z-index: 5;
 }
 .user-avatar{
@@ -298,16 +293,16 @@ page{
 }
 .recharge-items{
 	width: 660rpx;
-	height: 280rpx;
+	height: auto;
 	display: flex;
 	flex-flow: row wrap;
 	align-items: flex-start;
 	justify-content: space-between;
 	align-content: space-between;
-	margin-top: 20rpx;
+	margin-top: 10rpx;
 }
 .recharge-item{
-	width: 300rpx;
+	width: 200rpx;
 	/*height: 190rpx;*/
 	border: 2rpx solid #981D0D;
 	display: flex;
@@ -315,6 +310,7 @@ page{
 	align-items: center;
 	justify-content: flex-start;
 	border-radius: 20rpx;
+	margin-top: 40rpx;
 }
 
 .recharge-item-amount{
@@ -459,26 +455,28 @@ page{
 	border-radius: 41rpx;
 	margin-top: 70rpx;
 }
-
+.header{
+	height: 33rpx;
+	width: 750rpx;
+	line-height: 33rpx;
+	text-align: center;
+	position: relative;
+	margin-top: 40rpx;
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #fff;
+	z-index: 2;
+	margin-bottom: 64rpx;
+}
+.icon-back{
+	width: 20rpx;
+	height: 33rpx;
+	position: absolute;
+	top: 0;
+	left: 36rpx;
+}
 /* 
- <view class="recharge-success-box">
- 	<view class="recharge-success">
- 		<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
- 		<view class="recharge-type">
- 			半年会员
- 		</view>
- 		<view class="recharge-tip">
- 			恭喜您升级为
- 		</view>
- 		<view class="recharge-type-title">
- 			半年会员
- 		</view>
- 		<view class="recharge-success-btn">
- 			返回首页
- 		</view>
-		<image src="/static/icon-close.png" mode="aspectFit" class="icon-close"></image>
- 	</view>
- </view>
+ 
  
  */
 </style>

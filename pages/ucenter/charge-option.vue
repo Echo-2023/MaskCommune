@@ -1,8 +1,12 @@
 <template>
 	<view class="content">
 		<image :src="headImg" mode="aspectFill" class="vip-bg"></image>
+		<view class="header">
+			<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="homepage()"></image>
+			账户充值
+		</view>
 		<view class="user-box">
-			<image :src="avatar" mode="aspectFill" class="user-avatar"></image>
+			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="homepage()"></image>
 			<view class="user-right">
 				<view class="user-name">
 					{{nickname}}
@@ -14,60 +18,21 @@
 		</view>
 		<view class="recharge-box">
 			<view class="recharge-title">
-				购买会员
+				请选择支付方式
 			</view>
 			<view class="recharge-items">
-				<view class="recharge-item" :key="index" v-for="(vip,index) in vips" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
-					<view class="recharge-item-name">
-						{{vip.title}}
-					</view>
+				<view class="recharge-item" :key="index" v-for="(option,index) in options" @click="selectItem(option.key)" :class="selectIndex==option.key?'recharge-selected':''" >
 					<view class="recharge-item-amount">
 						<view class="recharge-item-num">
-							{{vip.price}}
+							{{option.val}}
 						</view>
-						{{unit}}
 					</view>
-					<view class="recharge-item-tip">
-						{{vip.sub_title}}
-					</view>
+					
 				</view>
 			</view>
-			<view class="vip-title">
-				VIP会员 享特权
-			</view>
-			<view class="vip-title-line"></view>
-			<view class="vip-item">
-				<image src="/static/icon-vip-wechat.png" mode="aspectFit" class="icon-vip-wechat"></image>
-				<view class="vip-item-text">
-					{{wechatRight}}
-				</view>
-			</view>
-			<view class="vip-item">
-				<image src="/static/icon-diamond.png" mode="aspectFit" class="icon-diamond"></image>
-				<view class="vip-item-text">
-					{{diamondRight}}
-				</view>
-			</view>
+			
 			<view class="recharge-btn" @click="clickRecharge()">
-				立即开通（需支付{{price}}{{unit}} 剩余{{amount}}钻)
-			</view>
-		</view>
-		<view class="recharge-success-box" v-if="showSuccess">
-			<view class="recharge-success">
-				<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
-				<view class="recharge-type">
-					{{vipTitle}}
-				</view>
-				<view class="recharge-tip">
-					恭喜您升级为
-				</view>
-				<view class="recharge-type-title">
-					{{vipTitle}}
-				</view>
-				<view class="recharge-success-btn" @click="indexPage()">
-					返回首页
-				</view>
-				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="closePop()"></image>
+				马上去支付
 			</view>
 		</view>
 	</view>
@@ -77,96 +42,103 @@
 	export default {
 		data() {
 			return {
-				basic:{},
+				basicInfo:{},
 				nickname: '新用户',
+				userName: '',
 				dueDate: "",
 				amount: "0",
 				isVIP: false,
 				headImg: "/static/data/default_head.jpg",
 				avatar: "/static/data/default_avatar.jpg",
-				selectIndex: 0,
+				selectIndex: "card",
 				showSuccess:false,
+				currency: '钻石',
 				unit:'',
-				vips:[],
-				diamondRight: '',
-				price: 0,
-				vipTitle: '',
-				vipId:0,
-				appAmount: 0,
+				options:[
+					{"key":"card","val":"充值卡支付"},
+					{"key":"usdt","val":"USDT支付"}
+				],
+				diamond: 0,
+				usdt: 0,
+				option_id:0,
+				rate: 7
 			}
 		},
 		mounted(){
-			this.basicInfo = this.$utils.basicInfo().then((res) => {
+			
+			this.$utils.basicInfo().then((res) => {
+				this.basicInfo = res;
+				this.unit      = this.basicInfo.currency_unit;
+				this.currency  = this.basicInfo.currency;
+				this.rate      = this.basicInfo.usdt_rate;
+				
 				uni.setNavigationBarTitle({
-					title: 'VIP会员' +"-"+ res.app_name
+					title: '账户充值' +"-"+ this.basicInfo.app_name
 				});
+				//uni.showTabBar();
+				//uni.showTabBar();
+
 			});
-			//console.log(this.basicInfo);
-			this.unit = this.basicInfo.currency_unit;
 			
 			this.initPage();
-			this.loadVIPInfo();
 		},
-		computed: {
-			wechatRight(){
-				if (this.vips.length && this.selectIndex < this.vips.length) {
-					this.price        = this.vips[this.selectIndex].price;
-					this.diamondRight = this.vips[this.selectIndex].diamond_right;
-					this.vipTitle     = this.vips[this.selectIndex].title;
-					this.vipId        = this.vips[this.selectIndex].id;
-					return this.vips[this.selectIndex].wechat_right;
-				} 
-				return '';	
-			}
-		},
+		
 		methods: {
 			selectItem(selectIndex){
+				console.log(selectIndex);
 				this.selectIndex = selectIndex;
 			},
+			
+			homepage() {
+				uni.reLaunch({
+					url:'/pages/settings/settings'
+				});
+			},
 			clickRecharge(){
-				//console.log(this.price, this.appAmount)
-				uni.showLoading();
-				if (parseInt(this.price) <= parseInt(this.appAmount)) {
-					let uri = "/api/member/purchasing-vip";
-					let data = {'vipId': this.vipId};
-					this.$utils.request(uri, data).then((res) => {
-						if (res.code == 200 && res.data.result == 'successful') {
-							
-							uni.hideLoading();
-							this.showSuccess = !this.showSuccess;
-						} else {
-							uni.hideLoading();
-							uni.showToast({
-								title: res.message,
-								icon: "none",
-								duration:5000
-							});
-						}
-						this.$utils.userInfo(true);
-						this.initPage();
-					}).catch((err) => {
-						console.log(err.message);
+				if (this.selectIndex == 'card') {
+					uni.navigateTo({
+						url:'/pages/ucenter/charge-card'
 					});
-					
+				} else if (this.selectIndex == 'usdt') {
+					uni.navigateTo({
+						url:'/pages/ucenter/charge-usdt'
+					});
 				} else {
-					uni.hideLoading();
 					uni.showModal({
-							title: '提示',
-							content: '您的余额不足,请先充值？',
-							success: function(res) {
+							title: '充值确认',
+							content: '充值'+this.usdt+'USDT,可获得'+this.diamond+this.currency,
+							success: (res) => {
 							if (res.confirm) {
-							    uni.navigateTo({
-							    	url:'/pages/ucenter/charge-option'
-							    });
+								this.$utils.request('/api/transaction/init-pay', {
+									"option_id": this.option_id,
+									"login_name": this.userName,
+									"app_amount": this.diamond,
+									"amount": this.usdt
+								}).then((res) => {
+									console.log(res);
+									if (res.code == 200) {
+										let data = res.data;
+										uni.navigateTo({
+											url:'/pages/settings/recharge?trade_num='+data.trade_num
+										});
+									} else {
+										uni.hideLoading();
+										uni.showToast({
+											title: res.message,
+											icon: "none",
+											duration:5000
+										});
+									}
+								}).catch(function(error){
+									console.log(error);
+								});
+							    
 							} else {
 								// 执行取消后的操作
 							}
 						}
 					})
 				}
-			},
-			closePop(){
-				this.showSuccess = !this.showSuccess;
 			},
 			indexPage(){
 				this.clickRecharge();
@@ -182,12 +154,12 @@
 						console.log(this.nickname,user);
 						if (user){
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
+							this.userName = user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
 							this.isVip    = user['isVIP'] == '1' ? true : false;
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
-							this.appAmount= user['amount'] ? user['amount'] : this.appAmount;
-							
+							console.log(this.nickname)
 						} else {
 							uni.reLaunch({
 								url:'/pages/account/login'
@@ -199,24 +171,6 @@
 							url:'/pages/account/login'
 						})
 					}
-				});
-			},
-			loadVIPInfo(){
-				uni.showLoading({});
-				this.$utils.request('/api/content/vip-list', {}).then((res) => {
-					if (res.code == 200) {
-						this.vips = res.data
-						uni.hideLoading();
-					} else {
-						uni.hideLoading();
-						uni.showToast({
-							title: res.message,
-							icon: "none",
-							duration:5000
-						});
-					}
-				}).catch(function(error){
-					console.log(error.message);
 				});
 			}
 		}
@@ -243,7 +197,7 @@ page{
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	margin-top: 50rpx;
+	/* margin-top: 50rpx; */
 	z-index: 5;
 }
 .user-avatar{
@@ -292,45 +246,39 @@ page{
 }
 .recharge-items{
 	width: 660rpx;
-	height: 420rpx;
+	height: auto;
 	display: flex;
 	flex-flow: row wrap;
 	align-items: flex-start;
 	justify-content: space-between;
 	align-content: space-between;
-	margin-top: 20rpx;
+	margin-top: 10rpx;
 }
 .recharge-item{
-	width: 196rpx;
-	height: 190rpx;
+	width: 300rpx;
+	/*height: 190rpx;*/
 	border: 2rpx solid #981D0D;
 	display: flex;
 	flex-flow: column nowrap;
 	align-items: center;
 	justify-content: flex-start;
 	border-radius: 20rpx;
+	margin-top: 40rpx;
 }
-.recharge-item-name{
-	font-size: 26rpx;
-	color: #727272;
-	margin-top: 24rpx;
-}
+
 .recharge-item-amount{
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
 	justify-content: center;
-	font-size: 36rpx;
+	font-size: 26rpx;
 	color: #555555;
-	margin-top: 16rpx;
+	margin-top: 6rpx;
 }
 .recharge-item-num{
-	font-size: 42rpx;
-}
-.recharge-item-tip{
-	font-size: 24rpx;
-	color: #b4b4b4;
-	margin-top: 6rpx;
+	font-size: 32rpx;
+	padding-top: 16rpx;
+	padding-bottom: 16rpx;
 }
 .recharge-selected{
 	background-color: #981D0D;
@@ -462,26 +410,25 @@ page{
 	border-radius: 41rpx;
 	margin-top: 70rpx;
 }
+.header{
+	height: 33rpx;
+	width: 750rpx;
+	line-height: 33rpx;
+	text-align: center;
+	position: relative;
+	margin-top: 40rpx;
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #fff;
+	z-index: 2;
+	margin-bottom: 64rpx;
+}
+.icon-back{
+	width: 20rpx;
+	height: 33rpx;
+	position: absolute;
+	top: 0;
+	left: 36rpx;
+}
 
-/* 
- <view class="recharge-success-box">
- 	<view class="recharge-success">
- 		<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
- 		<view class="recharge-type">
- 			半年会员
- 		</view>
- 		<view class="recharge-tip">
- 			恭喜您升级为
- 		</view>
- 		<view class="recharge-type-title">
- 			半年会员
- 		</view>
- 		<view class="recharge-success-btn">
- 			返回首页
- 		</view>
-		<image src="/static/icon-close.png" mode="aspectFit" class="icon-close"></image>
- 	</view>
- </view>
- 
- */
 </style>

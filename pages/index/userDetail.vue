@@ -82,16 +82,44 @@
 					共{{girl.photosLen}}个
 				</view>
 				<view class="total-count" v-if="tab=='视频'">
-					共18个
+					共{{girl.videosLen}}个
 				</view>
 			</view>
 			<view class="image-box" v-if="tab=='图片'">
 				<image :key="index" v-for="(item,index) in girl.photos" :src="item" mode="aspectFill" class="user-image" @click="previewImage([item])"></image>
 			</view>
 			<view class="image-box" v-if="tab=='视频'">
-				<image :key="index" v-for="(item,index) in girl.photos" :src="item" mode="aspectFill" class="user-image" @click="playVideo()"></image>
+				<video :key="index" v-for="(item,index) in girl.videos" :src="item" :id="videoId + index" mode="aspectFill" class="user-video" @click="playVideo(videoId+index)"></video>
+				<span class="video-tip" v-if="girl.videosLen<1">有点懒,暂未上传视频</span>				
 			</view>
-			<video src="/static/data/user.mp4" style="width: 0;height: 0;" id="myVideo"></video>
+			<view class="comment-btx" @click="feedback()">
+				<image src="/static/icon-wechat.png" mode="aspectFit" class="icon-wechat"></image>
+				点评 & 反馈
+			</view>
+		</view>
+		<view class="feedback-box" v-show="showFeedback">
+			<view class="feedback-box-content">
+				<image src="/static/login-bottom-bg.png" mode="aspectFit" class="feedback-box-header"></image>
+				<view class="feedback-content-type">
+					类型:
+					<select id="feedback_type" :value=feedbackType>
+						<option value='1'> 女神点评</option>
+						<option value='2'> 杳无音信</option>
+						<option value='3'> 意见反馈</option>
+						<option value='4'> 优化建议</option>
+					</select>
+				</view>
+				<view class="feedback-content-info">
+					内容:
+					<textarea id="feedback_content" v-model="feedbackContent"  placeholder="请输入内容(8-200个字符)"></textarea>
+					<p>{{ remainingCharacters }} 个字符剩余</p>
+					<p v-if="errorMessage" style="color: red;">{{ errorMessage }}</p>
+				</view>
+				<view class="recharge-success-btn" @click="submitFeedback()">
+					提交
+				</view>
+				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close"  @click="feedback()"></image>
+			</view>
 		</view>
 	</view>
 </template>
@@ -110,10 +138,20 @@
 				userVideos:[
 					'/static/data/user-images-2.png'
 				],
+				videoId: "myVideo",
 				videoContext:null,
 				girl:{},
-				girlId:''
+				girlId:'',
+				showFeedback: false,
+				feedbackType: 1,
+				feedbackContent:'',
+				errorMessage: ''
 			}
+		},
+		computed: {
+		    remainingCharacters() {
+		      return 200 - this.feedbackContent.length;
+		    }
 		},
 		methods: {
 			back(){
@@ -141,9 +179,9 @@
 				})
 				
 			},
-			playVideo(){
-				this.videoContext = uni.createVideoContext('myVideo');
-				this.videoContext.requestFullScreen();
+			playVideo(id){
+				this.videoContext = uni.createVideoContext(id);
+				//this.videoContext.requestFullScreen();
 				this.videoContext.play();
 			},
 			previewImage(images){
@@ -151,7 +189,7 @@
 					urls:images
 				})
 			},
-			cif(itemId){
+			cif(itemId){ //获取女神信息
 				uni.showLoading();
 				this.$utils.request(
 					'/api/content/cif', 
@@ -200,7 +238,7 @@
 							success: function(res) {
 								if (res.confirm) {
 									uni.navigateTo({
-										url: '/pages/vip/charge-option'
+										url: '/pages/ucenter/charge-option'
 									})
 								}
 							}
@@ -208,7 +246,7 @@
 					}
 				});
 			},
-			contactInfo(girlId){
+			contactInfo(girlId){ //获取当前用户信息
 				let token = '';
 				if (this.$utils.authorization()){
 					let user = this.$utils.userInfo();
@@ -230,7 +268,7 @@
 											success: function(res) {
 												if (res.confirm) {
 													uni.navigateTo({
-														url: '/pages/vip/charge-option'
+														url: '/pages/ucenter/charge-option'
 													})
 												}
 											}
@@ -276,22 +314,79 @@
 				let info = await this.$utils.request(uri, param);
 				this.girl = info.data;
 				this.userImages = this.girl.photos;
+				this.userVideos = this.girl.videos;
+				this.$utils.basicInfo().then((res) => {
+					uni.setNavigationBarTitle({
+						title: this.girl.nickname + '的主页-' + res.app_name
+					});
+				});
+			},
+			feedback() {
+				if (!this.$utils.authorization()) {
+					uni.showModal({
+							title: '消息提示',
+							content: '需要先登陆,才可以进行点评&反馈',
+							success: (res) => {
+							if (res.confirm) {
+								uni.reLaunch({
+									url:'/pages/account/login'
+								});  
+							} else {
+								// 执行取消后的操作
+							}
+						}
+					});
+				} else {
+					this.showFeedback = !this.showFeedback;
+				}
+			},
+			submitFeedback(){
+				if (this.$utils.authorization()) {
+					console.log('login in');
+					if (this.feedbackContent.length < 8) {
+						this.errorMessage = '输入的字符数必须大于或等于8个字符。';
+					} else if (this.feedbackContent.length > 200) {
+						this.inputText = this.feedbackContent.slice(0, 200);
+						this.errorMessage = '输入的字符数不能超过200个字符。';
+					} else {
+						this.errorMessage = '';
+						uni.showLoading();
+						this.$utils.request(
+							'/api/content/comment', 
+							{girl_id:this.girl.item_id,option_id: this.feedbackType, content:this.feedbackContent}
+						).then((res) => {
+							console.log(res);
+							uni.hideLoading();
+							this.showFeedback = !this.showFeedback;//关闭信息反馈窗口
+							uni.showModal({
+								title: '提示信息',
+								content: res.message,
+								showCancel: false,
+								success: function(res) {}
+							});
+						});
+					}
+				} else {
+					console.log('暂未登录');
+				}
 			}
 		},
 		onLoad(option) {
-			console.log(option, option.girl);
 			this.girlId = option.girl;
 			//uni.clearStorageSync('login_before_uri');
 			this.userInfo();
+		},
+		mounted() {
+			
 		},
 		onReachBottom() {
 			uni.showLoading({
 				mask: true
 			})
 			setTimeout(() => {
-				if(this.tab == '图片'){
+				if (this.tab == '图片') {
 					this.userImages = this.userImages.concat(userImagesData);
-				}else{
+				} else {
 					this.userVideos = this.userVideos.concat(userVideosData);
 				}
 				this.$nextTick(() => {
@@ -303,6 +398,27 @@
 </script>
 
 <style>
+	textarea {
+	  border-style: solid;     /* 边框样式 */
+	  border-width: 1px;       /* 边框宽度 */
+	  border-color: #C4C8CD;      /* 边框颜色 */
+	  width:480rpx;
+	  font-weight:normal;
+	}
+	
+	select {
+		color: #C4C8CD;
+		width:280rpx;
+		height: 50rpx;
+		font-weight:normal;
+		font-size: 30rpx;
+		margin-left: 20rpx;
+	}
+	
+	p {
+		font-size: 12px;
+	}
+	
 	.content{
 		width: 750rpx;
 		display: flex;
@@ -311,7 +427,7 @@
 	}
 	.user-cover{
 		width: 750rpx;
-		height: 414rpx;
+		height: 464rpx;
 	}
 	.icon-back{
 		width: 20rpx;
@@ -514,11 +630,113 @@
 		margin-bottom: 18rpx;
 		border-radius: 16rpx;
 	}
-	/* 
-
-	<view class="image-box">
-		<image v-for="(item,index) in userImages" :src="item" mode="aspectFit" class="user-image"></image>
-	</view>
-	 
-	 */
+	.user-video{
+		width: 346rpx;
+		height: 346rpx;
+		margin-bottom: 18rpx;
+		border-radius: 16rpx;
+	}
+	.comment-btx{
+		width: 710rpx;
+		height: 60rpx;
+		background: #6bab77;
+		/* border-radius: 30rpx; */
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: center;
+		justify-content: center;
+		font-size: 26rpx;
+		color: #fff;
+		font-weight: bold;
+		position: relative;
+	}
+	.feedback-box{
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		flex-flow: column nowrap;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0,0,0,0.8);
+		z-index: 1000;
+		overflow: visible;
+	}
+	.feedback-box-content{
+		width: 579rpx;
+		/* height: 700rpx; */
+		height: auto;
+		display: flex;
+		flex-flow: column nowrap;
+		align-items: center;
+		justify-content: flex-start;
+		position: relative;
+		background-color: #fff;
+		border-radius: 30rpx;
+	}
+	.feedback-box-header{
+		position: absolute;
+		width: 579rpx;
+		height: 200rpx;
+		z-index: 1;
+	}
+	.icon-close{
+		width: 77rpx;
+		height: 77rpx;
+		position: absolute;
+		left: 50%;
+		margin-left: -39rpx;
+		bottom: -137rpx;
+	}
+	.feedback-content-type{
+		color: #999999;
+		width: 500rpx;
+		align-content: left;
+		font-size: 32rpx;
+		font-weight: bold;
+		margin-top: 190rpx;
+		z-index: 2;
+	}
+	.feedback-content-info{
+		color: #999999;
+		width: 500rpx;
+		align-content: left;
+		font-size: 32rpx;
+		font-weight: bold;
+		margin-top: 20rpx;
+		z-index: 2;
+	}
+	.recharge-tip{
+		color: #999999;
+		font-size: 38rpx;
+		font-weight: bold;
+		margin-top: 100rpx;
+	}
+	.recharge-type-title{
+		font-weight: bold;
+		font-size: 60rpx;
+		color: #981D0D;
+		margin-top: 20rpx;
+	}
+	.recharge-success-btn{
+		width: 428rpx;
+		height: 82rpx;
+		line-height: 82rpx;
+		text-align: center;
+		color: #FEFBFB;
+		font-weight: bold;
+		font-size: 38rpx;
+		z-index: 2;
+		background-color: #981D0D;
+		border-radius: 41rpx;
+		margin-top: 40rpx;
+		margin-bottom: 30rpx;;
+	}
+	.video-tip{
+		font-size: 26rpx;
+		color: #989DA6;
+		height: 346rpx;
+	}
 </style>

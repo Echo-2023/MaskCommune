@@ -138,9 +138,13 @@
 					this.telegram = res.telegram;
 					this.email    = res.email;
 					this.app_name = res.app_name;
+					
+					uni.setNavigationBarTitle({
+						title: '会员中心-' + this.app_name
+					});
 				});
 				
-				let user      = this.$utils.userInfo();
+				let user      = this.$utils.userInfo(true);
 				if (user && Object.keys(user).length){
 					this.nickname = user['userName'] ? user['userName'] : user['name'];
 					this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
@@ -166,7 +170,7 @@
 			},
 			rechargePage(){
 				uni.navigateTo({
-					url:'/pages/vip/charge-option'
+					url:'/pages/ucenter/charge-option'
 				})
 			},
 			serviceClick(){

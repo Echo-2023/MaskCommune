@@ -7,9 +7,24 @@
 			}
 		},
 		{
-			"path": "pages/vip/charge-option",
+			"path": "pages/ucenter/charge-option",
 			"style": {
-				"navigationStyle": "custom"
+				"navigationStyle": "custom",
+				"enablePullDownRefresh" : false
+			}
+		},
+		{
+			"path": "pages/ucenter/charge-card",
+			"style": {
+				"navigationStyle": "custom",
+				"enablePullDownRefresh" : false
+			}
+		},
+		{
+			"path": "pages/ucenter/charge-usdt",
+			"style": {
+				"navigationStyle": "custom",
+				"enablePullDownRefresh" : false
 			}
 		},
 		{

@@ -1,8 +1,12 @@
 <template>
 	<view class="content">
 		<image :src="headImg" mode="aspectFill" class="vip-bg"></image>
+		<view class="header">
+			<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
+			账户充值
+		</view>
 		<view class="user-box">
-			<image :src="avatar" mode="aspectFill" class="user-avatar"></image>
+			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="ucenter()"></image>
 			<view class="user-right">
 				<view class="user-name">
 					{{nickname}}
@@ -14,60 +18,27 @@
 		</view>
 		<view class="recharge-box">
 			<view class="recharge-title">
-				购买会员
-			</view>
-			<view class="recharge-items">
-				<view class="recharge-item" :key="index" v-for="(vip,index) in vips" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
-					<view class="recharge-item-name">
-						{{vip.title}}
-					</view>
-					<view class="recharge-item-amount">
-						<view class="recharge-item-num">
-							{{vip.price}}
-						</view>
-						{{unit}}
-					</view>
-					<view class="recharge-item-tip">
-						{{vip.sub_title}}
-					</view>
-				</view>
+				充值卡充值
 			</view>
 			<view class="vip-title">
-				VIP会员 享特权
+				充值卡
 			</view>
 			<view class="vip-title-line"></view>
 			<view class="vip-item">
-				<image src="/static/icon-vip-wechat.png" mode="aspectFit" class="icon-vip-wechat"></image>
+				<image src="/static/card.png" mode="aspectFit" class="icon-diamond"></image>
 				<view class="vip-item-text">
-					{{wechatRight}}
+					<input type="text" v-model="cardNum" placeholder="请输入充值卡卡号"/>
 				</view>
 			</view>
 			<view class="vip-item">
-				<image src="/static/icon-diamond.png" mode="aspectFit" class="icon-diamond"></image>
+				<image src="/static/pwd.png" mode="aspectFit" class="icon-vip-wechat"></image>
 				<view class="vip-item-text">
-					{{diamondRight}}
+					<input type="password" v-model="cardPwd" placeholder="请输入充值卡密码"/>
 				</view>
 			</view>
+			
 			<view class="recharge-btn" @click="clickRecharge()">
-				立即开通（需支付{{price}}{{unit}} 剩余{{amount}}钻)
-			</view>
-		</view>
-		<view class="recharge-success-box" v-if="showSuccess">
-			<view class="recharge-success">
-				<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
-				<view class="recharge-type">
-					{{vipTitle}}
-				</view>
-				<view class="recharge-tip">
-					恭喜您升级为
-				</view>
-				<view class="recharge-type-title">
-					{{vipTitle}}
-				</view>
-				<view class="recharge-success-btn" @click="indexPage()">
-					返回首页
-				</view>
-				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close" @click="closePop()"></image>
+				确认提交
 			</view>
 		</view>
 	</view>
@@ -77,63 +48,87 @@
 	export default {
 		data() {
 			return {
-				basic:{},
+				basicInfo:{},
 				nickname: '新用户',
+				userName: '',
 				dueDate: "",
 				amount: "0",
 				isVIP: false,
 				headImg: "/static/data/default_head.jpg",
 				avatar: "/static/data/default_avatar.jpg",
+				uid: 0,
 				selectIndex: 0,
 				showSuccess:false,
+				currency: '钻石',
 				unit:'',
-				vips:[],
-				diamondRight: '',
-				price: 0,
-				vipTitle: '',
-				vipId:0,
-				appAmount: 0,
+				cardNum: '',
+				cardPwd: ''
 			}
 		},
 		mounted(){
-			this.basicInfo = this.$utils.basicInfo().then((res) => {
+			this.$utils.basicInfo().then((res) => {
+				this.basicInfo = res;
+				this.unit      = this.basicInfo.currency_unit;
+				this.currency  = this.basicInfo.currency;
+				this.rate      = this.basicInfo.usdt_rate;
+				
 				uni.setNavigationBarTitle({
-					title: 'VIP会员' +"-"+ res.app_name
+					title: '账户充值' +"-"+ this.basicInfo.app_name
 				});
 			});
-			//console.log(this.basicInfo);
-			this.unit = this.basicInfo.currency_unit;
 			
 			this.initPage();
-			this.loadVIPInfo();
-		},
-		computed: {
-			wechatRight(){
-				if (this.vips.length && this.selectIndex < this.vips.length) {
-					this.price        = this.vips[this.selectIndex].price;
-					this.diamondRight = this.vips[this.selectIndex].diamond_right;
-					this.vipTitle     = this.vips[this.selectIndex].title;
-					this.vipId        = this.vips[this.selectIndex].id;
-					return this.vips[this.selectIndex].wechat_right;
-				} 
-				return '';	
-			}
 		},
 		methods: {
-			selectItem(selectIndex){
-				this.selectIndex = selectIndex;
+			ucenter() {
+				uni.reLaunch({
+					url:'/pages/settings/settings'
+				});
+			},
+			back() {
+				const pages = getCurrentPages();
+				if (pages.length < 2) {
+				    // 页面栈太短，直接跳转到首页或某个固定页面
+				    uni.reLaunch({
+				        url: '/pages/ucenter/charge-option'
+				    });
+				} else {
+				    uni.navigateBack(); // 正常返回上一级
+				}
 			},
 			clickRecharge(){
-				//console.log(this.price, this.appAmount)
-				uni.showLoading();
-				if (parseInt(this.price) <= parseInt(this.appAmount)) {
-					let uri = "/api/member/purchasing-vip";
-					let data = {'vipId': this.vipId};
-					this.$utils.request(uri, data).then((res) => {
-						if (res.code == 200 && res.data.result == 'successful') {
-							
-							uni.hideLoading();
-							this.showSuccess = !this.showSuccess;
+				console.log(this.cardNum, this.cardPwd);
+				const regexCardNum = /^\d{16}$/;
+				const regexCardPwd = /^[a-zA-Z0-9!@#$%^&*()_+]+$/;
+
+				if (regexCardNum.test(this.cardNum) && regexCardPwd.test(this.cardPwd)) {
+					uni.showLoading();
+					let param = {
+						"card_num": this.$utils.encode(this.cardNum),
+						"card_pwd": this.$utils.encode(this.cardPwd),
+						"uid": this.uid
+					};
+					console.log(param);
+					this.$utils.request('/api/transaction/card-pay', param).then((res) => {
+						console.log(res);
+						if (res.code == 200) {
+							let data = res.data;
+							let msg  = data["amount"] + this.currency + "充值成功";
+							uni.showModal({
+								title: '充值提示',
+								content: msg,
+								success: (res) => {
+									uni.hideLoading();
+									if (res.confirm) {
+										uni.switchTab({
+											url:'/pages/settings/settings'
+										});
+									} else {
+										this.cardNum = '';
+										this.cardPwd = '';
+									}
+								}
+							});
 						} else {
 							uni.hideLoading();
 							uni.showToast({
@@ -142,31 +137,16 @@
 								duration:5000
 							});
 						}
-						this.$utils.userInfo(true);
-						this.initPage();
-					}).catch((err) => {
-						console.log(err.message);
+					}).catch(function(error){
+						console.log(error);
 					});
-					
 				} else {
-					uni.hideLoading();
-					uni.showModal({
-							title: '提示',
-							content: '您的余额不足,请先充值？',
-							success: function(res) {
-							if (res.confirm) {
-							    uni.navigateTo({
-							    	url:'/pages/ucenter/charge-option'
-							    });
-							} else {
-								// 执行取消后的操作
-							}
-						}
-					})
+					uni.showToast({
+						title:"充值卡账号或密码错误",
+						icon: "none",
+						duration:3000
+					});
 				}
-			},
-			closePop(){
-				this.showSuccess = !this.showSuccess;
 			},
 			indexPage(){
 				this.clickRecharge();
@@ -182,12 +162,13 @@
 						console.log(this.nickname,user);
 						if (user){
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
+							this.userName = user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
 							this.isVip    = user['isVIP'] == '1' ? true : false;
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
-							this.appAmount= user['amount'] ? user['amount'] : this.appAmount;
-							
+							this.uid      = user['id'];
+							console.log(this.nickname)
 						} else {
 							uni.reLaunch({
 								url:'/pages/account/login'
@@ -201,24 +182,6 @@
 					}
 				});
 			},
-			loadVIPInfo(){
-				uni.showLoading({});
-				this.$utils.request('/api/content/vip-list', {}).then((res) => {
-					if (res.code == 200) {
-						this.vips = res.data
-						uni.hideLoading();
-					} else {
-						uni.hideLoading();
-						uni.showToast({
-							title: res.message,
-							icon: "none",
-							duration:5000
-						});
-					}
-				}).catch(function(error){
-					console.log(error.message);
-				});
-			}
 		}
 	}
 </script>
@@ -243,7 +206,7 @@ page{
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	margin-top: 50rpx;
+	/* margin-top: 50rpx; */
 	z-index: 5;
 }
 .user-avatar{
@@ -292,29 +255,26 @@ page{
 }
 .recharge-items{
 	width: 660rpx;
-	height: 420rpx;
+	height: auto;
 	display: flex;
 	flex-flow: row wrap;
 	align-items: flex-start;
 	justify-content: space-between;
 	align-content: space-between;
-	margin-top: 20rpx;
+	margin-top: 10rpx;
 }
 .recharge-item{
-	width: 196rpx;
-	height: 190rpx;
+	width: 200rpx;
+	/*height: 190rpx;*/
 	border: 2rpx solid #981D0D;
 	display: flex;
 	flex-flow: column nowrap;
 	align-items: center;
 	justify-content: flex-start;
 	border-radius: 20rpx;
+	margin-top: 40rpx;
 }
-.recharge-item-name{
-	font-size: 26rpx;
-	color: #727272;
-	margin-top: 24rpx;
-}
+
 .recharge-item-amount{
 	display: flex;
 	flex-flow: row nowrap;
@@ -322,15 +282,10 @@ page{
 	justify-content: center;
 	font-size: 36rpx;
 	color: #555555;
-	margin-top: 16rpx;
+	margin-top: 6rpx;
 }
 .recharge-item-num{
 	font-size: 42rpx;
-}
-.recharge-item-tip{
-	font-size: 24rpx;
-	color: #b4b4b4;
-	margin-top: 6rpx;
 }
 .recharge-selected{
 	background-color: #981D0D;
@@ -462,26 +417,28 @@ page{
 	border-radius: 41rpx;
 	margin-top: 70rpx;
 }
-
+.header{
+	height: 33rpx;
+	width: 750rpx;
+	line-height: 33rpx;
+	text-align: center;
+	position: relative;
+	margin-top: 40rpx;
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #fff;
+	z-index: 2;
+	margin-bottom: 64rpx;
+}
+.icon-back{
+	width: 20rpx;
+	height: 33rpx;
+	position: absolute;
+	top: 0;
+	left: 36rpx;
+}
 /* 
- <view class="recharge-success-box">
- 	<view class="recharge-success">
- 		<image src="/static/recharge-success-bg.png" mode="aspectFit" class="recharge-success-bg"></image>
- 		<view class="recharge-type">
- 			半年会员
- 		</view>
- 		<view class="recharge-tip">
- 			恭喜您升级为
- 		</view>
- 		<view class="recharge-type-title">
- 			半年会员
- 		</view>
- 		<view class="recharge-success-btn">
- 			返回首页
- 		</view>
-		<image src="/static/icon-close.png" mode="aspectFit" class="icon-close"></image>
- 	</view>
- </view>
+ 
  
  */
 </style>

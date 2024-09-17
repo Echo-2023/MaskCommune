@@ -2,7 +2,7 @@
 	<view class="content">
 		<image :src="headImg"  mode="aspectFill" class="expend-bg"></image>
 		<view class="header">
-			<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="backPage()"></image>
+			<image src="/static/icon-back.png" mode="aspectFit" class="icon-back" @click="back()"></image>
 			充值记录
 		</view>
 		<view class="balance-tip">
@@ -24,7 +24,7 @@
 					</view>
 					<view class="expand-center">
 						<view class="expand-name">
-							充值 {{item.amount}} USDT
+							充值 {{item.amount}} {{item.currency}}
 						</view>
 						<view class="expand-time">
 							{{item.created_at}}
@@ -75,14 +75,23 @@
 				});
 			}
 			this.initPage();
+			this.$utils.basicInfo().then((res) => {
+				uni.setNavigationBarTitle({
+					title: '充值记录-' + res.app_name
+				});
+			});
+			
+			this.$utils.basicInfo().then((res) => {
+				console.log(res);
+				this.telegram = res.telegram;
+				this.email    = res.email;
+				this.unit     = res.currency_unit;
+				this.app_name = res.app_name;
+				console.log(this.app_name);
+			});
 		},
 		methods: {
 			initPage(){
-				let basicInfo = this.$utils.basicInfo();
-				this.telegram = basicInfo.telegram;
-				this.email    = basicInfo.email;
-				this.unit     = basicInfo.currency_unit;
-				this.app_name = basicInfo.app_name;
 				let user      = this.$utils.userInfo();
 				if (user){
 					this.nickname  = user['nickname'] ? user['nickname'] : user['userName'];
@@ -106,18 +115,26 @@
 							mask: true,
 							duration: 2000
 						});
-						// uni.reLaunch({
-						// 	url:'/pages/account/login'
-						// });
 					} 
 				}).catch(function(error){
 					console.log(error.message);
 				});
 			},
-			backPage(){
+			ucenter(){
 				uni.switchTab({
 					url:'/pages/settings/settings'
 				});
+			},
+			back(){
+				const pages = getCurrentPages();
+				if (pages.length < 2) {
+				    // 页面栈太短，直接跳转到首页或某个固定页面
+				    uni.reLaunch({
+				        url: '/pages/settings/settings'
+				    });
+				} else {
+				    uni.navigateBack(); // 正常返回上一级
+				}
 			}
 		}
 	}
