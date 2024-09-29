@@ -20,7 +20,7 @@
 			</view>
 			<view class="city">
 				<picker mode="multiSelector" :value="multiIndex" @columnchange="bindMultiPickerColumnChange"
-					:range="multiArray">
+					:range="multiArray" @change="onChange">
 					<view class="uni-input">{{selectCity}}</view>
 				</picker>
 				<!-- <picker @change="bindPickerChange" :value="index" :range="array" range-key="name">
@@ -110,14 +110,12 @@
 					case 0:
 						this.multiArray[1] = addressList[provinces[e.detail.value]];
 						this.selectCity = this.multiArray[1][0];
-						this.multiIndex = [e.detail.value, 0]
+						this.multiIndex = [e.detail.value, 0];
 						break;
-						//选择市
+					//选择市
 					case 1:
 						this.selectCity = this.multiArray[1][e.detail.value];
-						this.page  = 1;
-						this.users = [];
-						this.getUsers()
+						
 						break;
 					default:
 						break;
@@ -166,6 +164,12 @@
 					})
 				}, 500);
 			},
+
+			onChange() { //update user data
+				this.page  = 1;
+				this.users = [];
+				this.getUsers()
+			},
 			// 自定义下拉刷新控件被下拉
 			onPulling(e) {
 				console.log("onpulling", e);
@@ -199,14 +203,14 @@
 					"page": page,
 					"pageSize": pageSize,
 				};
-				const tmpUsers = await this.$utils.request(uri, param);
-				console.log('ppp', this.users);
-				this.pages = tmpUsers.data.pages;
-				if (this.users.length) {
-					this.users = this.users.concat(tmpUsers.data.data);
-				} else {
-					this.users = tmpUsers.data.data
-				}
+				const tmpUsers = await this.$utils.request(uri, param).then((res) => {
+					this.pages = res.data.pages;
+					if (this.users.length) {
+						this.users = this.users.concat(res.data.data);
+					} else {
+						this.users = res.data.data
+					}
+				});
 			},
 			//获取区域
 			async getRegions(code) {

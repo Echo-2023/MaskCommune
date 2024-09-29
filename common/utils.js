@@ -143,6 +143,30 @@ function userInfo(reload=false){
 	return info;
 }
 
+// 获取当前页面 URL（不包含域名，包含路径和参数）
+function getCurrentPageUri() {
+	const pages = getCurrentPages(); // 获取当前页面栈
+	const currentPage = pages[pages.length - 1]; // 获取当前页面对象
+	const route = currentPage.route; // 当前页面的路径（不含参数）
+	const options = currentPage.options; // 获取参数对象
+
+	// 构建查询参数字符串
+	let queryString = '';
+	for (let key in options) {
+		if (options.hasOwnProperty(key)) {
+			queryString += `${key}=${options[key]}&`;
+		}
+	}
+  
+	// 移除最后的 & 符号
+	queryString = queryString ? '?' + queryString.slice(0, -1) : '';
+
+	// 拼接路径和查询参数
+	const fullUrl = '/' + route + queryString;
+
+	return fullUrl;
+}
+
 module.exports = {
 	headers,
 	request,
@@ -151,6 +175,7 @@ module.exports = {
 	encode,
 	decode,
 	basicInfo,
-	userInfo
+	userInfo,
+	getCurrentPageUri
 }
 

@@ -103,7 +103,11 @@
 						uni.hideLoading();
 						if (res.code == 200) {
 							uni.setStorageSync('user_info', res.data);
-							let beforeUri = '/pages/settings/settings';
+							let beforeUri = uni.getStorageSync('before_uri');
+							console.log(beforeUri);
+							if (!beforeUri) {
+								beforeUri = '/';
+							}
 							uni.reLaunch({
 								url: beforeUri
 							});

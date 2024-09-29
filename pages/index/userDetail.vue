@@ -17,9 +17,9 @@
 				</view>
 			</view>
 			<view class="user-intro-box">
-				<view class="user-id">
+				<!-- <view class="user-id">
 					ID: {{girl.item_id}}
-				</view>
+				</view> -->
 				<view class="user-job">
 					<image src="/static/icon-job.png" mode="aspectFit" class="icon-job"></image>
 					{{girl.profession}}
@@ -217,13 +217,9 @@
 							duration: 2000
 						});
 						if (res.msg == 'Unauthenticated.') {
-							uni.setStorage({
-								key: 'login_before_uri',
-								data: '/pages/index/userDetail?girl='+this.girlId,
-								success: function () {
-									console.log('登陆前url保存成功');
-								}
-							});
+							//记录登录前的页面地址
+							const currentUri = this.$utils.getCurrentPageUri();
+							uni.setStorageSync('before_uri', currentUri);
 							uni.navigateTo({
 								url:'/pages/account/login'
 							})
@@ -281,20 +277,15 @@
 					console.log(user);
 					
 				} else {
-					console.log('需要登陆');
-					uni.setStorage({
-						key: 'login_before_uri',
-						data: '/pages/index/userDetail?girl='+this.girlId,
-						success: function () {
-							console.log('登陆前url保存成功');
-						}
-					});
 					uni.showModal({
 						title: '消息提醒',
 						content: '查看联系方式需要登陆，请确认是否登陆',
 						confirmText: '登陆',
-						success: function(res) {
+						success: (res) => {
 							if (res.confirm) {
+								//记录登录前的页面地址
+								const currentUri = this.$utils.getCurrentPageUri();
+								uni.setStorageSync('before_uri', currentUri);
 								uni.navigateTo({
 									url:'/pages/account/login'
 								});
@@ -322,12 +313,17 @@
 				});
 			},
 			feedback() {
+				
 				if (!this.$utils.authorization()) {
 					uni.showModal({
-							title: '消息提示',
-							content: '需要先登陆,才可以进行点评&反馈',
-							success: (res) => {
+						title: '消息提示',
+						content: '需要先登陆,才可以进行点评&反馈',
+						success: (res) => {
 							if (res.confirm) {
+								//记录登录前的页面地址
+								const currentUri = this.$utils.getCurrentPageUri();
+								uni.setStorageSync('before_uri', currentUri);
+								
 								uni.reLaunch({
 									url:'/pages/account/login'
 								});  
@@ -337,7 +333,24 @@
 						}
 					});
 				} else {
-					this.showFeedback = !this.showFeedback;
+					let user = this.$utils.userInfo(true);
+					console.log(user);
+					let msg  = "";
+					if (user.isVIP=='1') {
+						this.showFeedback = !this.showFeedback;
+					} else {
+						uni.showModal({
+							title: '消息提示',
+							content: '只有VIP会员才可以进行点评&反馈',
+							success: (res) => {
+								if (res.confirm) {
+									// 确认后进行的操作 
+								} else {
+									// 执行取消后的操作
+								}
+							}
+						});
+					}
 				}
 			},
 			submitFeedback(){

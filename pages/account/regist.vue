@@ -170,8 +170,13 @@
 					uni.hideLoading();
 					if (res.code == 200) {
 						uni.setStorageSync('user_info', res.data);
-						uni.switchTab({
-							url:'/pages/settings/settings'
+						let beforeUri = uni.getStorageSync('before_uri');
+						console.log(beforeUri);
+						if (!beforeUri) {
+							beforeUri = '/';
+						}
+						uni.redirectTo({
+							url: beforeUri
 						});
 					} else {
 						uni.showToast({
