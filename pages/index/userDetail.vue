@@ -199,11 +199,31 @@
 					if (res.code == 200) {
 						let info = res.data;
 						uni.hideLoading();
+						// uni.showModal({
+						// 	title: '联系方式',
+						// 	content: '微信:' + info.wechat,
+						// 	showCancel: false,
+						// 	success: function(res) {}
+						// });
 						uni.showModal({
-							title: '联系方式',
-							content: '微信:' + info.wechat,
-							showCancel: false,
-							success: function(res) {}
+						    title: '联系方式',
+						    content: '微信: ' + info.wechat + '\n点击确定复制微信号',
+						    showCancel: false, // 保持有取消和确定两个按钮
+						    success: function (res) {
+						        if (res.confirm) {
+						            // 点击确定按钮后执行的逻辑，将微信号复制到剪贴板
+						            uni.setClipboardData({
+						                data: info.wechat,
+						                success: function () {
+						                    uni.showToast({
+						                        title: '微信号已复制',
+						                        icon: 'success',
+						                        duration: 2000
+						                    });
+						                }
+						            });
+						        }
+						    }
 						});
 					} else if (res.code == 400) {
 						let msg = res.message;
