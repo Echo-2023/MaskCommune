@@ -21,6 +21,11 @@
 			<input :type="isPassword?'password':'text'" class="login-name" placeholder="请输入密码" :value="pass" @input="pass = $event.target.value" placeholder-class="login-name-placeholder"/>
 			<image :src="isPassword?'/static/icon-close-eye.png':'/static/icon-open-eye.png'" mode="aspectFit" class="icon-eye" @click="passwordClick()"></image>
 		</view>
+		<view class="login-item" v-if="showCaptcha">
+			<image src="/static/icon-code.png" mode="aspectFit" class="login-icon"></image>
+			<input type="text" class="login-code" placeholder="请输入验证码" v-model="captcha" placeholder-class="login-name-placeholder"/>
+			<image :src="captchaIMG" mode="aspectFit" class="icon-code" @click="captchaClick()"></image>
+		</view>
 		<view class="login-tip-box">
 			<view @click="regist()">
 				邮箱免费注册
@@ -38,13 +43,17 @@
 </template>
 
 <script>
+	import * as config from 'config'
 	export default {
 		data() {
 			return {
 				email: "",
 				pass: "",
+				captcha: "",
 				checked:false,
-				isPassword:true
+				isPassword:true,
+				captchaIMG: "",
+				showCaptcha: false
 			}
 		},
 		mounted(){
@@ -53,6 +62,10 @@
 					url:'/pages/settings/settings'
 				});
 			}
+			console.log(config.API_HOST);
+			this.captchaIMG = config.API_HOST + "/login-captcha?devId=" + uni.getDeviceInfo().deviceId;
+		},
+		computed: {
 			
 		},
 		methods: {
@@ -98,6 +111,10 @@
 						"email": this.email,
 						"password": this.$utils.encode(this.pass)
 					};
+					if (this.showCaptcha) {
+						console.log(this.captcha);
+						param['captcha'] = this.captcha;
+					}
 					let rs = this.$utils.request(uri, param).then((res) => {
 						console.log(res);
 						uni.hideLoading();
@@ -112,6 +129,11 @@
 								url: beforeUri
 							});
 						} else {
+							let preg = "验证码";
+							if (/^验证码/.test(res.message)) {
+								this.showCaptcha = true;
+							} 
+							this.captchaIMG = config.API_HOST + "/login-captcha?devId=" + uni.getDeviceInfo().deviceId+"&t=" + new Date().getTime();
 							uni.showToast({
 								title: res.message,
 								icon: "none",
@@ -138,6 +160,9 @@
 			},
 			passwordClick(){
 				this.isPassword = !this.isPassword;
+			},
+			captchaClick(){
+				this.captchaIMG = config.API_HOST + "/login-captcha?devId=" + uni.getDeviceInfo().deviceId+"&t=" + new Date().getTime();
 			}
 		}
 	}
@@ -256,5 +281,10 @@
 .icon-eye{
 	width: 34rpx;
 	height: 26rpx;
+}
+.icon-code {
+	width: 198rpx;
+	height: 98rpx;
+	margin-bottom: 20rpx;
 }
 </style>

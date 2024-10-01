@@ -14,7 +14,7 @@
 		</view>
 		<view class="recharge-box">
 			<view class="recharge-title">
-				购买会员
+				购买VIP
 			</view>
 			<view class="recharge-items">
 				<view class="recharge-item" :key="index" v-for="(vip,index) in vips" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
@@ -49,7 +49,10 @@
 				</view>
 			</view>
 			<view class="recharge-btn" @click="clickRecharge()">
-				立即开通（需支付{{price}}{{unit}} 剩余{{amount}}钻)
+				立即开通
+			</view>
+			<view class="recharge-btn-tips">
+				钻石余额:{{amount}}钻
 			</view>
 		</view>
 		<view class="recharge-success-box" v-if="showSuccess">
@@ -88,6 +91,7 @@
 				showSuccess:false,
 				unit:'',
 				vips:[],
+				wechatRight: '',
 				diamondRight: '',
 				price: 0,
 				vipTitle: '',
@@ -97,31 +101,28 @@
 		},
 		mounted(){
 			this.basicInfo = this.$utils.basicInfo().then((res) => {
+				this.unit = res.currency_unit;
 				uni.setNavigationBarTitle({
 					title: 'VIP会员' +"-"+ res.app_name
 				});
 			});
 			//console.log(this.basicInfo);
-			this.unit = this.basicInfo.currency_unit;
-			
 			this.initPage();
 			this.loadVIPInfo();
 		},
 		computed: {
-			wechatRight(){
+			
+		},
+		methods: {
+			selectItem(selectIndex){
+				this.selectIndex = selectIndex;
 				if (this.vips.length && this.selectIndex < this.vips.length) {
 					this.price        = this.vips[this.selectIndex].price;
 					this.diamondRight = this.vips[this.selectIndex].diamond_right;
 					this.vipTitle     = this.vips[this.selectIndex].title;
 					this.vipId        = this.vips[this.selectIndex].id;
-					return this.vips[this.selectIndex].wechat_right;
-				} 
-				return '';	
-			}
-		},
-		methods: {
-			selectItem(selectIndex){
-				this.selectIndex = selectIndex;
+					this.wechatRight  = this.vips[this.selectIndex].wechat_right;
+				}
 			},
 			clickRecharge(){
 				//console.log(this.price, this.appAmount)
@@ -206,6 +207,13 @@
 				this.$utils.request('/api/content/vip-list', {}).then((res) => {
 					if (res.code == 200) {
 						this.vips = res.data
+						if (this.vips.length && this.selectIndex < this.vips.length) {
+							this.price        = this.vips[this.selectIndex].price;
+							this.diamondRight = this.vips[this.selectIndex].diamond_right;
+							this.vipTitle     = this.vips[this.selectIndex].title;
+							this.vipId        = this.vips[this.selectIndex].id;
+							this.wechatRight  = this.vips[this.selectIndex].wechat_right;
+						}
 						uni.hideLoading();
 					} else {
 						uni.hideLoading();
@@ -309,6 +317,7 @@ page{
 	align-items: center;
 	justify-content: flex-start;
 	border-radius: 20rpx;
+	margin-bottom:20rpx;
 }
 .recharge-item-name{
 	font-size: 26rpx;
@@ -320,12 +329,12 @@ page{
 	flex-flow: row nowrap;
 	align-items: center;
 	justify-content: center;
-	font-size: 36rpx;
+	font-size: 28rpx;
 	color: #555555;
 	margin-top: 16rpx;
 }
 .recharge-item-num{
-	font-size: 42rpx;
+	font-size: 30rpx;
 }
 .recharge-item-tip{
 	font-size: 24rpx;
@@ -462,7 +471,14 @@ page{
 	border-radius: 41rpx;
 	margin-top: 70rpx;
 }
-
+.recharge-btn-tips{
+	width: 660rpx;
+	height: 420rpx;
+	
+	margin-top: 20rpx;
+	color:#333333;
+	font-size: 28rpx;
+}
 /* 
  <view class="recharge-success-box">
  	<view class="recharge-success">

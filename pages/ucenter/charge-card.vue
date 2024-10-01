@@ -37,6 +37,16 @@
 				</view>
 			</view>
 			
+			<view class="vip-title-tips">
+				充值卡购买地址
+			</view>
+			<template v-for="(item,index) in links">
+				<view class="vip-item-tips" :key="index">
+					<view class="vip-item-text-tips">
+						<a :href="item.link" target="_blank">{{item.title}}</a>
+					</view>
+				</view>
+			</template>
 			<view class="recharge-btn" @click="clickRecharge()">
 				确认提交
 			</view>
@@ -62,7 +72,8 @@
 				currency: '钻石',
 				unit:'',
 				cardNum: '',
-				cardPwd: ''
+				cardPwd: '',
+				links:[]
 			}
 		},
 		mounted(){
@@ -181,14 +192,27 @@
 						})
 					}
 				});
+				
+				this.$utils.request('/api/recharge-link', {}).then((res) => {
+					console.log(res);
+					if (res.code == 200) {
+						this.links = res.data;	
+					}
+				}).catch(function(error){
+					console.log(error);
+				});
+				
 			},
 		}
 	}
 </script>
 
 <style>
-page{
+.page{
 	background-color: #f7f8fa;
+}
+a {
+  text-decoration: none;
 }
 .content{
 	align-items: center;
@@ -299,6 +323,13 @@ page{
 	margin-top: 50rpx;
 	margin-bottom: 6rpx;
 }
+.vip-title-tips{
+	font-size: 25rpx;
+	color: #981D0D;
+	margin-top: 50rpx;
+	margin-bottom: 15rpx;
+	align-items: left;
+}
 .vip-title-line{
 	width: 39rpx;
 	height: 7rpx;
@@ -309,6 +340,15 @@ page{
 .vip-item{
 	width: 660rpx;
 	height: 114rpx;
+	background-color: #f7f7f7;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	margin-bottom: 18rpx;
+}
+.vip-item-tips{
+	width: 660rpx;
+	height: 66rpx;
 	background-color: #f7f7f7;
 	display: flex;
 	flex-flow: row nowrap;
@@ -326,7 +366,12 @@ page{
 	font-size: 28rpx;
 	color: #333333;
 }
-
+.vip-item-text-tips{
+	padding-left: 30rpx;
+	width: 550rpx;
+	font-size: 24rpx;
+	color: #333333;
+}
 .icon-diamond{
 	width: 46rpx;
 	height: 39rpx;
@@ -334,7 +379,7 @@ page{
 	margin-right: 30rpx;
 }
 .recharge-btn{
-	margin-top: 67rpx;
+	margin-top: 35rpx;
 	width: 658rpx;
 	height: 81rpx;
 	background: #991D0D;

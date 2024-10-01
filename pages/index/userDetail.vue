@@ -252,25 +252,9 @@
 					} else {
 						uni.showModal({
 							title: '提示信息',
-							content: '您不是VIP会员，查看女神联系方式将会从您的余额中进行扣除费用',
+							content: '您不是VIP会员，暂时无法查看用户联系方式',
 							success: function(res) {
-								if (res.confirm) {
-									if (user.amount) {
-										this.cif(girlId);
-									} else {
-										uni.showModal({
-											title: '提示信息',
-											content: '您的余额为0，请先充值',
-											success: function(res) {
-												if (res.confirm) {
-													uni.navigateTo({
-														url: '/pages/ucenter/charge-option'
-													})
-												}
-											}
-										});
-									}
-								}
+								//
 							}
 						});
 					}
