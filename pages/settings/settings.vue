@@ -24,10 +24,10 @@
 				</view>
 			</view>
 			<view class="vip-card-btn" @click="vipPage()" v-if="isVIP">
-				续费会员
+				续费VIP
 			</view>
 			<view class="vip-card-btn" @click="vipPage()" v-else-if="amount > 0">
-				购买会员
+				购买VIP
 			</view>
 			<view class="vip-card-btn" @click="rechargePage()" v-else>
 				账户充值

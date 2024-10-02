@@ -52,7 +52,7 @@
 				立即开通
 			</view>
 			<view class="recharge-btn-tips">
-				钻石余额:{{amount}}钻
+				钻石余额:{{appAmount}}钻
 			</view>
 		</view>
 		<view class="recharge-success-box" v-if="showSuccess">
