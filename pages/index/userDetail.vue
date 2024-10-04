@@ -207,8 +207,9 @@
 						// });
 						uni.showModal({
 						    title: '联系方式',
-						    content: '微信: ' + info.wechat + '\n点击确定复制微信号',
-						    showCancel: false, // 保持有取消和确定两个按钮
+						    content: '微信: ' + info.wechat,
+						    cancelText: "确定", // 保持有取消和确定两个按钮
+							confirmText: "复制",
 						    success: function (res) {
 						        if (res.confirm) {
 						            // 点击确定按钮后执行的逻辑，将微信号复制到剪贴板
@@ -250,11 +251,12 @@
 						uni.showModal({
 							title: '提示信息',
 							content: res.message,
-							confirmText: "充值",
+							cancelText: "稍后购买",
+							confirmText: "立即购买",
 							success: function(res) {
 								if (res.confirm) {
-									uni.navigateTo({
-										url: '/pages/ucenter/charge-option'
+									uni.reLaunch({
+										url: '/pages/vip/vip'
 									})
 								}
 							}
@@ -307,6 +309,22 @@
 				};
 				
 				let info = await this.$utils.request(uri, param);
+				console.log(info);
+				if (info.code == 404) {
+					uni.showModal({
+						title: '提示信息',
+						content: info.message,
+						showCancel: false,
+						confirmText: "确定",
+						success: function(res) {
+							if (res.confirm) {
+								uni.reLaunch({
+									url: '/pages/index/index'
+								})
+							}
+						}
+					});
+				}
 				this.girl = info.data;
 				this.userImages = this.girl.photos;
 				this.userVideos = this.girl.videos;

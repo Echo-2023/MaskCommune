@@ -131,7 +131,8 @@
 								success: (res) => {
 									uni.hideLoading();
 									if (res.confirm) {
-										uni.switchTab({
+										this.$utils.userInfo(true);
+										uni.reLaunch({
 											url:'/pages/settings/settings'
 										});
 									} else {

@@ -175,7 +175,7 @@
 						if (!beforeUri) {
 							beforeUri = '/';
 						}
-						uni.redirectTo({
+						uni.reLaunch({
 							url: beforeUri
 						});
 					} else {
