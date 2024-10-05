@@ -9,7 +9,7 @@
 			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="ucenter()"></image>
 			<view class="user-right">
 				<view class="user-name">
-					{{nickname}}
+					{{nickname}}  {{vipName}}
 				</view>
 				<view class="user-term" v-if="isVIP">
 					{{dueDate}}到期
@@ -17,8 +17,13 @@
 			</view>
 		</view>
 		<view class="recharge-box">
-			<view class="recharge-title">
-				推荐{{currency}}充值金额
+			<view class="account-top">
+				<view class="account-top-title">
+					推荐{{currency}}充值金额
+				</view>
+				<view class="account-balance-text">
+					余额:<text class="account-balance">{{amount}}</text>钻
+				</view>
 			</view>
 			<view class="recharge-items">
 				<view class="recharge-item" :key="index" v-for="(option,index) in options" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
@@ -69,6 +74,7 @@
 				dueDate: "",
 				amount: "0",
 				isVIP: false,
+				vipName: "",
 				headImg: "/static/data/default_head.jpg",
 				avatar: "/static/data/default_avatar.jpg",
 				selectIndex: 0,
@@ -127,7 +133,9 @@
 				});
 			},
 			back(){
-				uni.navigateBack();
+				uni.reLaunch({
+					url:"/pages/ucenter/charge-option"
+				});
 			},
 			clickRecharge(){
 				if (this.price < this.amount) {
@@ -185,9 +193,11 @@
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
 							this.userName = user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
-							this.isVip    = user['isVIP'] == '1' ? true : false;
+							this.isVIP    = user['isVIP'] == '1' ? true : false;
+							this.vipName  = user['vipName'];
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
+							this.amount   = user['amount'];
 							console.log(this.nickname)
 						} else {
 							uni.reLaunch({
@@ -318,12 +328,12 @@ page{
 	flex-flow: row nowrap;
 	align-items: center;
 	justify-content: center;
-	font-size: 36rpx;
+	font-size: 20rpx;
 	color: #555555;
 	margin-top: 6rpx;
 }
 .recharge-item-num{
-	font-size: 42rpx;
+	font-size: 30rpx;
 }
 .recharge-selected{
 	background-color: #981D0D;
@@ -332,7 +342,7 @@ page{
 	color: #ffffff !important;
 }
 .vip-title{
-	font-size: 35rpx;
+	font-size: 30rpx;
 	color: #981D0D;
 	margin-top: 50rpx;
 	margin-bottom: 6rpx;
@@ -373,13 +383,13 @@ page{
 }
 .recharge-btn{
 	margin-top: 67rpx;
-	width: 658rpx;
-	height: 81rpx;
+	width: 258rpx;
+	height: 61rpx;
 	background: #991D0D;
 	border-radius: 41rpx;
-	font-size: 28rpx;
+	font-size: 30rpx;
 	color: #ffffff;
-	line-height: 81rpx;
+	line-height: 61rpx;
 	text-align: center;
 }
 .recharge-success-box{
@@ -474,6 +484,37 @@ page{
 	position: absolute;
 	top: 0;
 	left: 36rpx;
+}
+.account-top{
+	width: 710rpx;
+	height: 92rpx;
+	border-bottom: 2rpx solid #f1f1f1;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+}
+.account-top-title{
+	font-weight: bold;
+	font-size: 30rpx;
+	color: #333333;
+	margin-left: 30rpx;
+	height: 92rpx;
+	line-height: 92rpx;
+}
+.account-balance-text{
+	flex: 1;
+	margin-left: 27rpx;
+	font-size: 28rpx;
+	color: #989DA6;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+}
+.account-balance{
+	font-size: 30rpx;
+	color: #991D0D;
+	margin-left: 11rpx;
+	margin-right: 6rpx;
 }
 /* 
  

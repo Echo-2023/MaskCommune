@@ -5,7 +5,7 @@
 			<image :src="avatar" mode="aspectFill" class="user-avatar"></image>
 			<view class="user-right">
 				<view class="user-name">
-					{{nickname}}
+					{{nickname}}   {{vipName}}
 				</view>
 				<view class="user-term" v-if="isVIP">
 					{{dueDate}}到期
@@ -13,8 +13,14 @@
 			</view>
 		</view>
 		<view class="recharge-box">
-			<view class="recharge-title">
-				购买VIP
+			
+			<view class="account-top">
+				<view class="account-top-title">
+					购买VIP
+				</view>
+				<view class="account-balance-text">
+					余额:<text class="account-balance">{{appAmount}}</text>钻
+				</view>
 			</view>
 			<view class="recharge-items">
 				<view class="recharge-item" :key="index" v-for="(vip,index) in vips" @click="selectItem(index)" :class="selectIndex==index?'recharge-selected':''" >
@@ -51,9 +57,6 @@
 			<view class="recharge-btn" @click="clickRecharge()">
 				立即开通
 			</view>
-			<view class="recharge-btn-tips">
-				钻石余额:{{appAmount}}钻
-			</view>
 		</view>
 		<view class="recharge-success-box" v-if="showSuccess">
 			<view class="recharge-success">
@@ -85,6 +88,7 @@
 				dueDate: "",
 				amount: "0",
 				isVIP: false,
+				vipName: "普通会员",
 				headImg: "/static/data/default_head.jpg",
 				avatar: "/static/data/default_avatar.jpg",
 				selectIndex: 0,
@@ -168,6 +172,9 @@
 			},
 			closePop(){
 				this.showSuccess = !this.showSuccess;
+				uni.reLaunch({
+				    url: '/pages/vip/vip'
+				});
 			},
 			indexPage(){
 				this.clickRecharge();
@@ -184,11 +191,12 @@
 						if (user){
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
-							this.isVip    = user['isVIP'] == '1' ? true : false;
+							this.isVIP    = user['isVIP'] == '1' ? true : false;
+							this.vipName  = user['vipName'];
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
 							this.appAmount= user['amount'] ? user['amount'] : this.appAmount;
-							
+							console.log(this.isVIP);
 						} else {
 							uni.reLaunch({
 								url:'/pages/account/login'
@@ -413,8 +421,8 @@ page{
 	overflow: visible;
 }
 .recharge-success{
-	width: 579rpx;
-	height: 700rpx;
+	width: 379rpx;
+	height: 400rpx;
 	display: flex;
 	flex-flow: column nowrap;
 	align-items: center;
@@ -426,8 +434,8 @@ page{
 .recharge-success-bg{
 	position: absolute;
 	left: 0;
-	bottom: 397rpx;
-	width: 579rpx;
+	bottom: 257rpx;
+	width: 379rpx;
 	height: 408rpx;
 	z-index: 1;
 }
@@ -441,35 +449,34 @@ page{
 }
 .recharge-type{
 	color: #FEFBFB;
-	font-size: 42rpx;
+	font-size: 30rpx;
 	font-weight: bold;
-	margin-top: 190rpx;
 	z-index: 2;
 }
 .recharge-tip{
 	color: #999999;
-	font-size: 38rpx;
+	font-size: 30rpx;
 	font-weight: bold;
 	margin-top: 100rpx;
 }
 .recharge-type-title{
 	font-weight: bold;
-	font-size: 60rpx;
+	font-size: 48rpx;
 	color: #981D0D;
 	margin-top: 20rpx;
 }
 .recharge-success-btn{
-	width: 428rpx;
-	height: 82rpx;
-	line-height: 82rpx;
+	width: 228rpx;
+	height: 62rpx;
+	line-height: 62rpx;
 	text-align: center;
 	color: #FEFBFB;
 	font-weight: bold;
-	font-size: 38rpx;
+	font-size: 30rpx;
 	z-index: 2;
 	background-color: #981D0D;
 	border-radius: 41rpx;
-	margin-top: 70rpx;
+	margin-top: 32rpx;
 }
 .recharge-btn-tips{
 	width: 660rpx;
@@ -478,6 +485,48 @@ page{
 	margin-top: 20rpx;
 	color:#333333;
 	font-size: 28rpx;
+}
+
+.account-box{
+	width: 710rpx;
+	height: 240rpx;
+	margin-top:  -20rpx;
+	z-index: 3;
+	background-color: #fff;
+	border-radius: 16rpx;
+	display: flex;
+	flex-flow: column nowrap;
+}
+.account-top{
+	width: 710rpx;
+	height: 92rpx;
+	border-bottom: 2rpx solid #f1f1f1;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+}
+.account-top-title{
+	font-weight: bold;
+	font-size: 30rpx;
+	color: #333333;
+	margin-left: 30rpx;
+	height: 92rpx;
+	line-height: 92rpx;
+}
+.account-balance-text{
+	flex: 1;
+	margin-left: 27rpx;
+	font-size: 28rpx;
+	color: #989DA6;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+}
+.account-balance{
+	font-size: 30rpx;
+	color: #991D0D;
+	margin-left: 11rpx;
+	margin-right: 6rpx;
 }
 /* 
  <view class="recharge-success-box">

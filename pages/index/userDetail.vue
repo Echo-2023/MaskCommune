@@ -6,7 +6,7 @@
 			<view class="user-avatar-box">
 				<image :src="girl.avatar" mode="aspectFill" class="user-avatar"></image>
 			</view>
-			<view class="wechat-box" @click="contactInfo(girl.item_id)">
+			<view class="wechat-box" @click="contactInfo(girl.id)">
 				<image src="/static/icon-wechat.png" mode="aspectFit" class="icon-wechat"></image>
 				查看微信
 			</view>
@@ -388,7 +388,7 @@
 						uni.showLoading();
 						this.$utils.request(
 							'/api/content/comment', 
-							{girl_id:this.girl.item_id,option_id: this.feedbackType, content:this.feedbackContent}
+							{girl_id:this.girl.id,option_id: this.feedbackType, content:this.feedbackContent}
 						).then((res) => {
 							console.log(res);
 							uni.hideLoading();

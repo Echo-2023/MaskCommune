@@ -9,7 +9,7 @@
 			<image :src="avatar" mode="aspectFill" class="user-avatar" @click="homepage()"></image>
 			<view class="user-right">
 				<view class="user-name">
-					{{nickname}}
+					{{nickname}}  {{vipName}}
 				</view>
 				<view class="user-term" v-if="isVIP">
 					{{dueDate}}到期
@@ -17,15 +17,20 @@
 			</view>
 		</view>
 		<view class="recharge-box">
-			<view class="recharge-title">
-				请选择支付方式
+			<view class="account-top">
+				<view class="account-top-title">
+					支付方式
+				</view>
+				<view class="account-balance-text">
+					余额:<text class="account-balance">{{appAmount}}</text>钻
+				</view>
 			</view>
 			<view class="recharge-items">
 				<view class="recharge-item" :key="index" v-for="(option,index) in options" @click="selectItem(option.key)" :class="selectIndex==option.key?'recharge-selected':''" >
-					<view class="recharge-item-amount">
-						<view class="recharge-item-num">
+					<view class="recharge-item-num">
+						
 							{{option.val}}
-						</view>
+						
 					</view>
 					
 				</view>
@@ -46,7 +51,7 @@
 				nickname: '新用户',
 				userName: '',
 				dueDate: "",
-				amount: "0",
+				appAmount: "0",
 				isVIP: false,
 				headImg: "/static/data/default_head.jpg",
 				avatar: "/static/data/default_avatar.jpg",
@@ -156,9 +161,11 @@
 							this.nickname = user['nickname'] ? user['nickname'] : user['userName'];
 							this.userName = user['userName'];
 							this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
-							this.isVip    = user['isVIP'] == '1' ? true : false;
+							this.isVIP    = user['isVIP'] == '1' ? true : false;
+							this.vipName  = user['vipName'];
 							this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 							this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
+							this.appAmount= user['amount'];
 							console.log(this.nickname)
 						} else {
 							uni.reLaunch({
@@ -253,6 +260,7 @@ page{
 	justify-content: space-between;
 	align-content: space-between;
 	margin-top: 10rpx;
+	font-size: 30rpx;
 }
 .recharge-item{
 	width: 300rpx;
@@ -276,7 +284,7 @@ page{
 	margin-top: 6rpx;
 }
 .recharge-item-num{
-	font-size: 32rpx;
+	/* font-size: 32rpx; */
 	padding-top: 16rpx;
 	padding-bottom: 16rpx;
 }
@@ -328,13 +336,13 @@ page{
 }
 .recharge-btn{
 	margin-top: 67rpx;
-	width: 658rpx;
-	height: 81rpx;
+	width: 258rpx;
+	height: 61rpx;
 	background: #991D0D;
 	border-radius: 41rpx;
-	font-size: 28rpx;
+	font-size: 30rpx;
 	color: #ffffff;
-	line-height: 81rpx;
+	line-height: 61rpx;
 	text-align: center;
 }
 .recharge-success-box{
@@ -430,5 +438,35 @@ page{
 	top: 0;
 	left: 36rpx;
 }
-
+.account-top{
+	width: 710rpx;
+	height: 92rpx;
+	border-bottom: 2rpx solid #f1f1f1;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+}
+.account-top-title{
+	font-weight: bold;
+	font-size: 30rpx;
+	color: #333333;
+	margin-left: 30rpx;
+	height: 92rpx;
+	line-height: 92rpx;
+}
+.account-balance-text{
+	flex: 1;
+	margin-left: 27rpx;
+	font-size: 28rpx;
+	color: #989DA6;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+}
+.account-balance{
+	font-size: 30rpx;
+	color: #991D0D;
+	margin-left: 11rpx;
+	margin-right: 6rpx;
+}
 </style>

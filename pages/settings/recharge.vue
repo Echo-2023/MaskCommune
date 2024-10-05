@@ -29,12 +29,13 @@
 				</view>
 			</view>
 			<view class="recharge-tip">
-				请扫描下方微信二维码付款
+				请扫描下方二维码付款
 			</view>
 			
 			<image :src="qr_code" mode="aspectFit" class="recharge-qrcode"></image>
 			<view class="recharge-addr">
-				地址:{{receive_addr}}
+				<span class="recharge-text">{{receive_addr}}</span>
+				<view @click="copyAddr">复制</view>
 			</view>
 			<view class="recharge-price">
 				1USDT={{rate}} {{currency}}
@@ -80,7 +81,9 @@
 		},
 		methods: {
 			backPage(){
-				uni.navigateBack();
+				uni.reLaunch({
+					url:"/pages/ucenter/charge-usdt"
+				});
 			},
 			confirmTrade(){
 				if (this.showCountdown) {
@@ -207,6 +210,18 @@
 				      }
 				    }
 				  }, 1000);
+			},
+			copyAddr() {
+				uni.setClipboardData({
+				    data: this.receive_addr,
+				    success: function () {
+				        uni.showToast({
+				            title: '地址已复制',
+				            icon: 'success',
+				            duration: 2000
+				        });
+				    }
+				});
 			}
 		}
 	}
@@ -242,6 +257,7 @@
 .recharge-box{
 	width: 726rpx;
 	height: 1172rpx;
+	font-size: 28rpx;
 	display: flex;
 	flex-flow: column nowrap;
 	align-items: center;
@@ -258,7 +274,7 @@
 .recharge-title1{
 	margin-left: 76rpx;
 	margin-top: 54rpx;
-	font-size: 32rpx;
+	/* font-size: 32rpx; */
 	color: #333333;
 	z-index: 2;
 	align-self: flex-start;
@@ -267,7 +283,7 @@
 	width: 610rpx;
 	margin-left: 76rpx;
 	margin-top: 20rpx;
-	font-size: 32rpx;
+	/* font-size: 32rpx; */
 	color: #333333;
 	z-index: 2;
 	align-self: flex-start;
@@ -284,7 +300,7 @@
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
-	font-size: 32rpx;
+	/* font-size: 32rpx; */
 	color: #333333;
 	z-index: 2;
 }
@@ -295,7 +311,7 @@
 	align-items: center;
 	justify-content: center;
 	border-radius: 4rpx;
-	font-size: 32rpx;
+	/* font-size: 32rpx; */
 	z-index: 2;
 	background-color: #EFEFEF;
 	margin-left: 8rpx;
@@ -303,7 +319,7 @@
 	border-radius: 4rpx;
 }
 .recharge-amount{
-	font-size: 80rpx;
+	font-size: 40rpx;
 	color: #981D0D;
 	display: flex;
 	flex-flow: row nowrap;
@@ -312,13 +328,13 @@
 	margin-top: 40rpx;
 }
 .recharge-amount-text{
-	font-size: 64rpx;
+	/* font-size: 64rpx; */
 	font-weight: bold;
 	color: #981D0D;
 	margin-left: 10rpx;
 }
 .recharge-tip{
-	font-size: 28rpx;
+	/* font-size: 28rpx; */
 	color: #989DA6;
 	margin-top: 30rpx;
 	z-index: 2;
@@ -330,22 +346,22 @@
 	z-index: 2;
 }
 .back{
-	width: 433rpx;
-	height: 73rpx;
-	line-height: 73rpx;
+	width: 260rpx;
+	height: 53rpx;
+	line-height: 53rpx;
 	background: #981D0D;
 	border-radius: 37rpx;
 	z-index: 2;
 	text-align: center;
 	justify-content: center;
-	font-size: 32rpx;
+	/* font-size: 32rpx; */
 	font-weight: bold;
 	color: #FFFFFF;
 	text-shadow: 0rpx 0rpx 24rpx rgba(179,0,10,0.7);
-	/*margin-top: 26rpx;*/
+	margin-top: 26rpx;
 }
 .recharge-price{
-	font-size: 30rpx;
+	/* font-size: 30rpx; */
 	color: #981D0D;
 	margin-top: 30rpx;
 	z-index: 2;

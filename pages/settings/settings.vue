@@ -15,11 +15,11 @@
 		<view class="vip-card-box">
 			<image src="/static/vip-card-bg.png" mode="top center" class="vip-card-bg"></image>
 			<image src="/static/icon-vip-diamond.png" mode="aspectFit" class="icon-vip-diamond"></image>
-			<view class="vip-card-center" v-if="isVIP">
+			<view class="vip-card-center">
 				<view class="vip-card-title">
-					会员权益卡
+					{{vipName}}
 				</view>
-				<view class="vip-card-date">
+				<view class="vip-card-date" v-if="isVIP">
 					会员权益截至日期：{{dueDate}}
 				</view>
 			</view>
@@ -114,6 +114,7 @@
 			return {
 				serviceShow: false,
 				nickname: '新用户',
+				vipName: "VIP权益卡",
 				dueDate: "",
 				amount: "0",
 				isVIP: false,
@@ -149,6 +150,7 @@
 					this.nickname = user['userName'] ? user['userName'] : user['name'];
 					this.dueDate  = user['dueDate'] ? user['dueDate'] : '';
 					this.isVIP    = user['isVIP'] == '1' ? true : false;
+					this.vipName  = user['vipName'];
 					this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 					this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
 					this.amount   = user['amount'] ? user['amount'] : this.amount;
