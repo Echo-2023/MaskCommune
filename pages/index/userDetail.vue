@@ -195,16 +195,9 @@
 					'/api/content/cif', 
 					{girl_id:itemId}
 				).then((res) => {
-					console.log(res);
 					if (res.code == 200) {
 						let info = res.data;
 						uni.hideLoading();
-						// uni.showModal({
-						// 	title: '联系方式',
-						// 	content: '微信:' + info.wechat,
-						// 	showCancel: false,
-						// 	success: function(res) {}
-						// });
 						uni.showModal({
 						    title: '联系方式',
 						    content: '微信: ' + info.wechat,
@@ -228,26 +221,28 @@
 						});
 					} else if (res.code == 400) {
 						let msg = res.message;
-						if (res.msg == 'Unauthenticated.') {
+						if (res.message == 'Unauthenticated.') {
 							msg = '您尚未登陆，请登陆之后再查看';
+							uni.clearStorageSync()
 						}
-						uni.showToast({
-							title: msg,
-							icon: "none",
-							mask: true,
-							duration: 2000
+						uni.hideLoading();
+						uni.showModal({
+							title: '提示信息',
+							content: msg,
+							confirmText: "登录",
+							success: (res) => {
+								if (res.confirm) {
+									//记录登录前的页面地址
+									const currentUri = this.$utils.getCurrentPageUri();
+									uni.setStorageSync('before_uri', currentUri);
+									uni.reLaunch({
+										url: '/pages/account/login'
+									})
+								}
+							}
 						});
-						if (res.msg == 'Unauthenticated.') {
-							//记录登录前的页面地址
-							const currentUri = this.$utils.getCurrentPageUri();
-							uni.setStorageSync('before_uri', currentUri);
-							uni.navigateTo({
-								url:'/pages/account/login'
-							})
-						}
 					} else {
 						uni.hideLoading();
-						console.log(res);
 						uni.showModal({
 							title: '提示信息',
 							content: res.message,
@@ -270,6 +265,7 @@
 					let user = this.$utils.userInfo();
 					let msg  = "";
 					if (user.isVIP) {
+						console.log("contactInfo");
 						this.cif(girlId);
 					} else {
 						uni.showModal({
@@ -280,8 +276,6 @@
 							}
 						});
 					}
-					console.log(user);
-					
 				} else {
 					uni.showModal({
 						title: '消息提醒',
@@ -300,7 +294,7 @@
 					})
 					
 				}
-				console.log(girlId)
+				//console.log(girlId)
 			},
 			async userInfo(){
 				let uri = '/api/content/girl';
@@ -309,7 +303,6 @@
 				};
 				
 				let info = await this.$utils.request(uri, param);
-				console.log(info);
 				if (info.code == 404) {
 					uni.showModal({
 						title: '提示信息',

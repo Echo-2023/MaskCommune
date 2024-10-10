@@ -62,7 +62,6 @@ function generateRandomString(length) {
 const authorization = function ()
 {
 	 const info = uni.getStorageSync('user_info');
-	 console.log(info);
 	 return info ? info.token : '';
 }
 

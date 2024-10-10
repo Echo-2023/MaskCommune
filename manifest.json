@@ -74,12 +74,13 @@
     "h5" : {
         "title" : "面具公社",
         "router" : {
-            "mode" : "hash",
-            "base" : "./"
+            "mode" : "history",
+            "base" : "/"
         },
         "devServer" : {
             "https" : false
-        }
+        },
+        "template" : "index.html"
     },
     "locale" : "zh-Hans"
 }
