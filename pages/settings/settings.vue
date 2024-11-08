@@ -217,10 +217,15 @@
 				})
 			},
 			logout(){
-				uni.clearStorageSync();
-				uni.reLaunch({
-					url:'/pages/account/login'
-				})
+				this.$utils.request('/api/logout', {}).then((res) => {
+					uni.clearStorageSync();
+					uni.reLaunch({
+						url:'/pages/account/login'
+					})
+				}).catch(function(error){
+					console.log(error.message);
+				});
+				
 			}
 		}
 	}

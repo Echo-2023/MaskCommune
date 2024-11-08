@@ -6,7 +6,7 @@
 			<view class="user-avatar-box">
 				<image :src="girl.avatar" mode="aspectFill" class="user-avatar"></image>
 			</view>
-			<view class="wechat-box" @click="contactInfo(girl.id)">
+			<view class="wechat-box" @click="contactInfo(girl.id)" title="test">
 				<image src="/static/icon-wechat.png" mode="aspectFit" class="icon-wechat"></image>
 				查看微信
 			</view>
@@ -28,6 +28,17 @@
 					<image src="/static/icon-city.png" mode="aspectFit" class="icon-city"></image>
 					{{girl.province}}·{{girl.city}}
 				</view>
+				<view class="user-share hover-item" @click="uniShare">
+					<image src="/static/icon-fxwz.png" mode="aspectFit" class="icon-city"></image>
+					分享
+					<!-- 提示信息 -->
+					<view class="tooltip">
+						新用户注册成功，可获得10次查看微信机会
+					</view>	
+					
+				</view>
+				
+				
 			</view>
 			<view class="user-info-box">
 				<view class="user-info-item">
@@ -125,13 +136,25 @@
 </template>
 
 <script>
-	var userImagesData = [
+	import UniShare from '@/uni_modules/uni-share/js_sdk/uni-share.js';
+	const uniShare = new UniShare();
+	//console.log(uniShare);
+	const userImagesData = [
 		'/static/data/user-images-1.png'
 	];
-	var userVideosData = [
+	const userVideosData = [
 		'/static/data/user-images-2.png'
 	];
 	export default {
+		onBackPress({from}) {
+			console.log(from);
+			if(from=='backbutton'){
+				this.$nextTick(function(){
+					uniShare.hide()
+				})
+				return uniShare.isShow;
+			}
+		},
 		data() {
 			return {
 				tab:'图片',
@@ -264,18 +287,7 @@
 				if (this.$utils.authorization()){
 					let user = this.$utils.userInfo();
 					let msg  = "";
-					if (user.isVIP) {
-						console.log("contactInfo");
-						this.cif(girlId);
-					} else {
-						uni.showModal({
-							title: '提示信息',
-							content: '您不是VIP会员，暂时无法查看用户联系方式',
-							success: function(res) {
-								//
-							}
-						});
-					}
+					this.cif(girlId);
 				} else {
 					uni.showModal({
 						title: '消息提醒',
@@ -397,10 +409,117 @@
 				} else {
 					console.log('暂未登录');
 				}
-			}
+			},
+			// 判断是否为真实手机环境
+			isRealMobile() {
+				const userAgent = navigator.userAgent.toLowerCase();
+				console.log(userAgent)
+				// 检测是否为常见的移动端设备
+				const isMobile = /iphone|ipad|ipod|android|mobile/.test(userAgent);  
+				// 检测是否为 PC 浏览器
+				const isPC = /windows|macintosh/.test(userAgent);
+				// 如果是移动设备且不包含 PC 浏览器信息，则为真实手机
+				return isMobile && !isPC;
+			},
+			uniShare() {
+				let   url  = window.location.href;
+				const user = this.$utils.userInfo();
+				if (user) {
+					url = url + "&promo_code=" + user['id'];
+				}
+				console.log(url, this.girl.avatar, this.isRealMobile());
+				if (this.isRealMobile()) {
+					uniShare.show({
+						content: { //公共的分享参数配置  类型（type）、链接（herf）、标题（title）、summary（描述）、imageUrl（缩略图）
+							type: 0,
+							href: url,
+							title: document.title,
+							summary: '免费注册，即可查看女神联系方式；每日可免费查看10个女神的联系方式',
+							imageUrl: this.girl.avatar
+						},
+						menus: [{
+								"img": "/static/app-plus/sharemenu/wechatfriend.png",
+								"text": "微信好友",
+								"share": { //当前项的分享参数配置。可覆盖公共的配置如下：分享到微信小程序，配置了type=5
+									"provider": "weixin",
+									"scene": "WXSceneSession"
+								}
+							},
+							{
+								"img": "/static/app-plus/sharemenu/wechatmoments.png",
+								"text": "微信朋友圈",
+								"share": {
+									"provider": "weixin",
+									"scene": "WXSceneTimeline"
+								}
+							},
+							{
+								"img": "/static/app-plus/sharemenu/mp_weixin.png",
+								"text": "微信小程序",
+								"share": {
+									provider: "weixin",
+									scene: "WXSceneSession",
+									type: 5,
+									miniProgram: {
+										id: '123',
+										path: '/pages/list/detail',
+										webUrl: '/#/pages/list/detail',
+										type: 0
+									},
+								}
+							},
+							{
+								"img": "/static/app-plus/sharemenu/weibo.png",
+								"text": "微博",
+								"share": {
+									"provider": "sinaweibo"
+								}
+							},
+							{
+								"img": "/static/app-plus/sharemenu/qq.png",
+								"text": "QQ",
+								"share": {
+									"provider": "qq"
+								}
+							},
+							{
+								"img": "/static/app-plus/sharemenu/copyurl.png",
+								"text": "复制",
+								"share": "copyurl"
+							},
+							{
+								"img": "/static/app-plus/sharemenu/more.png",
+								"text": "更多",
+								"share": "shareSystem"
+							}
+						],
+						cancelText: "取消分享",
+					}, e => { //callback
+						console.log(uniShare.isShow);
+						console.log(e);
+					})
+				} else {
+					uni.showToast({icon:'none', title: '请在手机上进行分享或者点击',duration: 2000});
+				}
+			} 
 		},
 		onLoad(option) {
+			let key = 'girl'; // 替换为需要获取的参数名
+			if (option[key] && option[key].includes(',')) {
+			  // 取逗号分隔字符串的最后一个值
+			  option[key] = option[key].split(',').pop();
+			}
 			this.girlId = option.girl;
+			key = 'promo_code'; // 替换为需要获取的参数名
+			if (option[key] && option[key].includes(',')) {
+			  // 取逗号分隔字符串的最后一个值
+			  option[key] = option[key].split(',').pop();
+			}
+			const promo_code = option.promo_code;
+			console.log(promo_code)
+			if (promo_code != undefined) {
+				uni.setStorageSync('promo_code', promo_code);
+			}
 			//uni.clearStorageSync('login_before_uri');
 			this.userInfo();
 		},
@@ -569,6 +688,13 @@
 		display: flex;
 		flex-flow: row nowrap;
 		align-items: center;
+	}
+	.user-share{
+		margin-left: 50rpx;
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: center;
+		font-weight: bold;
 	}
 	.icon-city{
 		width: 24rpx;
@@ -766,5 +892,39 @@
 		font-size: 26rpx;
 		color: #989DA6;
 		height: 346rpx;
+	}
+	
+	.hover-item {
+	  padding: 10px;
+	  background-color: #f5f5f5;
+	  display: inline-block;
+	  cursor: pointer;
+	  border-radius: 5px;
+	  position: relative;
+	}
+	
+	.tooltip {
+	  visibility: hidden;
+	  width: 580rpx;
+	  background-color: #333;
+	  color: #fff;
+	  text-align: left;
+	  border-radius: 5rpx;
+	  padding: 5rpx;
+	  padding-left: 30rpx;;
+	  position: absolute;
+	  /*bottom: 100%;  显示在上方 */
+	  /* left: 40%; */
+	  transform: translateX(-50%);
+	  opacity: 0;
+	  transition: opacity 0.3s;
+	  white-space: nowrap;
+	  font-size: 24rpx;
+	  z-index: 1000;
+	}
+	
+	.hover-item:hover .tooltip {
+	  visibility: visible;
+	  opacity: 1;
 	}
 </style>

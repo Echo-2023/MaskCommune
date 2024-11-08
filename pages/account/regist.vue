@@ -9,8 +9,11 @@
 				面具公社
 			</view>
 		</view>
-		<view class="login-subtitle">
+		<!-- <view class="login-subtitle">
 			使用邮箱免费注册
+		</view> -->
+		<view class="login-subtitle">
+			注册即可每天可免费查看3个微信号码
 		</view>
 		<view class="login-item">
 			<image src="/static/icon-email.png" mode="aspectFit" class="login-icon"></image>
@@ -46,6 +49,7 @@
 			<view class="login-agree-text">
 				注册前请仔细阅读<text class="login-agree-name">《服务与隐私条款（面具公社) 》</text>
 			</view>
+			
 		</view> 
 		<view class="login-btn" @click="regist()">
 			注册
@@ -71,6 +75,7 @@
 				verifyCode:'',
 				pass:'',
 				pass2:'',
+				promo_code:'',
 				
 			}
 		},
@@ -83,6 +88,11 @@
 			this.$nextTick(() => {
 				this.$forceUpdate();
 			})
+			const promo_code = uni.getStorageSync('promo_code');
+			if (promo_code!=undefined) {
+				this.promo_code = promo_code;
+			}
+
 		},
 		computed:{
 			sendText(){
@@ -163,7 +173,8 @@
 					"email": this.email,
 					"verifyCode": this.verifyCode,
 					"password": this.pass,
-					"password_confirmation": this.pass2
+					"password_confirmation": this.pass2,
+					"promo_code": this.promo_code
 				};
 				let rs = this.$utils.request(uri, param).then((res) => {
 					console.log(res);

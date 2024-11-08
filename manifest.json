@@ -80,7 +80,12 @@
         "devServer" : {
             "https" : false
         },
-        "template" : "index.html"
+        "template" : "index.html",
+        "optimization" : {
+            "treeShaking" : {
+                "enable" : true
+            }
+        }
     },
     "locale" : "zh-Hans"
 }
