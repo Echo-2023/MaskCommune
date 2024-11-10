@@ -54,7 +54,8 @@
     "mp-weixin" : {
         "appid" : "",
         "setting" : {
-            "urlCheck" : false
+            "urlCheck" : false,
+			"share": true
         },
         "usingComponents" : true
     },
@@ -85,7 +86,8 @@
             "treeShaking" : {
                 "enable" : true
             }
-        }
+        },
+		"share": true
     },
     "locale" : "zh-Hans"
 }

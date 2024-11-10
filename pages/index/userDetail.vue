@@ -136,8 +136,6 @@
 </template>
 
 <script>
-	import UniShare from '@/uni_modules/uni-share/js_sdk/uni-share.js';
-	const uniShare = new UniShare();
 	//console.log(uniShare);
 	const userImagesData = [
 		'/static/data/user-images-1.png'
@@ -146,15 +144,6 @@
 		'/static/data/user-images-2.png'
 	];
 	export default {
-		onBackPress({from}) {
-			console.log(from);
-			if(from=='backbutton'){
-				this.$nextTick(function(){
-					uniShare.hide()
-				})
-				return uniShare.isShow;
-			}
-		},
 		data() {
 			return {
 				tab:'图片',
@@ -410,96 +399,28 @@
 					console.log('暂未登录');
 				}
 			},
-			// 判断是否为真实手机环境
-			isRealMobile() {
-				const userAgent = navigator.userAgent.toLowerCase();
-				console.log(userAgent)
-				// 检测是否为常见的移动端设备
-				const isMobile = /iphone|ipad|ipod|android|mobile/.test(userAgent);  
-				// 检测是否为 PC 浏览器
-				const isPC = /windows|macintosh/.test(userAgent);
-				// 如果是移动设备且不包含 PC 浏览器信息，则为真实手机
-				return isMobile && !isPC;
-			},
 			uniShare() {
 				let   url  = window.location.href;
 				const user = this.$utils.userInfo();
 				if (user) {
 					url = url + "&promo_code=" + user['id'];
 				}
-				console.log(url, this.girl.avatar, this.isRealMobile());
-				if (this.isRealMobile()) {
-					uniShare.show({
-						content: { //公共的分享参数配置  类型（type）、链接（herf）、标题（title）、summary（描述）、imageUrl（缩略图）
-							type: 0,
-							href: url,
-							title: document.title,
-							summary: '免费注册，即可查看女神联系方式；每日可免费查看10个女神的联系方式',
-							imageUrl: this.girl.avatar
-						},
-						menus: [{
-								"img": "/static/app-plus/sharemenu/wechatfriend.png",
-								"text": "微信好友",
-								"share": { //当前项的分享参数配置。可覆盖公共的配置如下：分享到微信小程序，配置了type=5
-									"provider": "weixin",
-									"scene": "WXSceneSession"
-								}
-							},
-							{
-								"img": "/static/app-plus/sharemenu/wechatmoments.png",
-								"text": "微信朋友圈",
-								"share": {
-									"provider": "weixin",
-									"scene": "WXSceneTimeline"
-								}
-							},
-							{
-								"img": "/static/app-plus/sharemenu/mp_weixin.png",
-								"text": "微信小程序",
-								"share": {
-									provider: "weixin",
-									scene: "WXSceneSession",
-									type: 5,
-									miniProgram: {
-										id: '123',
-										path: '/pages/list/detail',
-										webUrl: '/#/pages/list/detail',
-										type: 0
-									},
-								}
-							},
-							{
-								"img": "/static/app-plus/sharemenu/weibo.png",
-								"text": "微博",
-								"share": {
-									"provider": "sinaweibo"
-								}
-							},
-							{
-								"img": "/static/app-plus/sharemenu/qq.png",
-								"text": "QQ",
-								"share": {
-									"provider": "qq"
-								}
-							},
-							{
-								"img": "/static/app-plus/sharemenu/copyurl.png",
-								"text": "复制",
-								"share": "copyurl"
-							},
-							{
-								"img": "/static/app-plus/sharemenu/more.png",
-								"text": "更多",
-								"share": "shareSystem"
-							}
-						],
-						cancelText: "取消分享",
-					}, e => { //callback
-						console.log(uniShare.isShow);
-						console.log(e);
-					})
+				//console.log(url, this.girl.avatar, this.isRealMobile());
+				
+				// 触发分享方法
+				// 检查浏览器是否支持 navigator.share
+				if (navigator.share) {
+				  navigator.share({
+				    title: document.title,
+				    text: '免费注册，即可查看女神联系方式；每日可免费查看10个女神的联系方式',
+				    url: url // 替换为你自己的URL
+				  }).then(() => {
+				    console.log('分享成功');
+				  }).catch((error) => {
+				    console.log('分享失败', error);
+				  });
 				} else {
-					uni.showToast({icon:'none', title: '请在手机上进行分享或者点击',duration: 2000});
+				  console.log('浏览器不支持分享功能');
 				}
 			} 
 		},
@@ -516,7 +437,7 @@
 			  option[key] = option[key].split(',').pop();
 			}
 			const promo_code = option.promo_code;
-			console.log(promo_code)
+			//console.log(promo_code)
 			if (promo_code != undefined) {
 				uni.setStorageSync('promo_code', promo_code);
 			}
