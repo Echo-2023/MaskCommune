@@ -132,10 +132,24 @@
 				<image src="/static/icon-close.png" mode="aspectFit" class="icon-close"  @click="feedback()"></image>
 			</view>
 		</view>
+		<!-- 自定义模态框组件 -->
+		    <modal 
+		      :show="modalVisible" 
+		      :content="modalContent"
+			  :confirm-text="confirmText"
+			  :cancel-text="cancelText"
+		      @close="modalVisible = false"
+		      @confirm="handleConfirm"
+		      @cancel="handleCancel"
+		    ></modal>
 	</view>
+	
+	  
 </template>
 
 <script>
+	import Modal from '../components/modal.vue';
+
 	//console.log(uniShare);
 	const userImagesData = [
 		'/static/data/user-images-1.png'
@@ -144,6 +158,9 @@
 		'/static/data/user-images-2.png'
 	];
 	export default {
+		components: {
+		    Modal
+		},
 		data() {
 			return {
 				tab:'图片',
@@ -157,7 +174,11 @@
 				showFeedback: false,
 				feedbackType: 1,
 				feedbackContent:'',
-				errorMessage: ''
+				errorMessage: '',
+				modalVisible: false,
+				modalContent: '这是模态框的内容',
+				confirmText: '立即购买',
+				cancelText: '复制链接'
 			}
 		},
 		computed: {
@@ -229,7 +250,10 @@
 						                }
 						            });
 						        }
-						    }
+						    },
+							cancel: function (res) {
+								console.log(res.errMsg+'sss');
+							}
 						});
 					} else if (res.code == 400) {
 						let msg = res.message;
@@ -255,19 +279,21 @@
 						});
 					} else {
 						uni.hideLoading();
-						uni.showModal({
-							title: '提示信息',
-							content: res.message,
-							cancelText: "稍后购买",
-							confirmText: "立即购买",
-							success: function(res) {
-								if (res.confirm) {
-									uni.reLaunch({
-										url: '/pages/vip/vip'
-									})
-								}
-							}
-						});
+						this.modalContent = res.message;
+						this.modalVisible = true;
+						// uni.showModal({
+						// 	title: '提示信息',
+						// 	content: res.message,
+						// 	cancelText: "稍后购买",
+						// 	confirmText: "复制链接/立即购买",
+						// 	success: function(res) {
+						// 		if (res.confirm) {
+						// 			uni.reLaunch({
+						// 				url: '/pages/vip/vip'
+						// 			})
+						// 		}
+						// 	}
+						// });
 					}
 				});
 			},
@@ -422,7 +448,37 @@
 				} else {
 				  console.log('浏览器不支持分享功能');
 				}
-			} 
+			},
+			showModal() {
+				this.modalVisible = true;
+			},
+			
+			handleConfirm() { //立即购买
+				console.log('用户确认');
+				this.modalVisible = false;
+				uni.reLaunch({
+				 	url: '/pages/vip/vip'
+	 			})
+			},
+			handleCancel() {//复制链接
+				console.log('用户取消');
+				this.modalVisible = false;
+				let   url  = window.location.href;
+				const user = this.$utils.userInfo();
+				if (user) {
+					url = url + "&promo_code=" + user['id'];
+				}
+				uni.setClipboardData({
+				    data: url,
+				    success: function () {
+				        uni.showToast({
+				            title: '链接已复制',
+				            icon: 'success',
+				            duration: 2000
+				        });
+				    }
+				});
+			}
 		},
 		onLoad(option) {
 			let key = 'girl'; // 替换为需要获取的参数名
