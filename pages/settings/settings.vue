@@ -32,8 +32,10 @@
 			<view class="vip-card-btn" @click="rechargePage()" v-else>
 				账户充值
 			</view>
+			
 		</view>
 		<view class="account-box">
+			
 			<view class="account-top">
 				<view class="account-top-title">
 					账户充值
@@ -56,7 +58,17 @@
 					账户充值
 				</view>
 			</view>
+			
+			<view class="account-top">
+				<view class="account-info-text">
+					邀请好友数量:<text class="account-info">{{invitedFriends}}</text>
+				</view>
+				<view class="account-info-text">
+					已使用奖励次数:<text class="account-info">{{consumed}}</text>
+				</view>
+			</view>
 		</view>
+		
 		<view class="list-box">
 			<view class="list-item">
 				<image src="/static/icon-xgmm.png" mode="aspectFit" class="icon-xgmm"></image>
@@ -122,7 +134,9 @@
 				avatar: "/static/data/default_avatar.jpg",
 				telegram: "",
 				email: "",
-				app_name: ""
+				app_name: "",
+				invitedFriends: 0,
+				consumed: 0
 			}
 		},
 		mounted(){
@@ -154,6 +168,9 @@
 					this.headImg  = user['headImg'] ? user['headImg'] : this.headImg;
 					this.avatar   = user['avatar'] ? user['avatar'] : this.avatar;
 					this.amount   = user['amount'] ? user['amount'] : this.amount;
+					this.consumed = user['consumed'] ? user['consumed'] : 0;
+					this.invitedFriends = user['invitedFriends'] ? user['invitedFriends'] : 0;
+					
 					console.log('init page', this.nickname)
 				}
 				
@@ -338,7 +355,7 @@ page{
 }
 .account-box{
 	width: 710rpx;
-	height: 240rpx;
+	height: 320rpx;
 	margin-top:  -20rpx;
 	z-index: 3;
 	background-color: #fff;
@@ -372,6 +389,21 @@ page{
 	align-items: baseline;
 }
 .account-balance{
+	font-size: 30rpx;
+	color: #991D0D;
+	margin-left: 11rpx;
+	margin-right: 6rpx;
+}
+.account-info-text{
+	flex: 1;
+	margin-left: 27rpx;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: baseline;
+	font-size: 24rpx;
+	color: #333333;
+}
+.account-info{
 	font-size: 30rpx;
 	color: #991D0D;
 	margin-left: 11rpx;
